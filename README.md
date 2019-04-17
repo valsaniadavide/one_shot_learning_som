@@ -1,2 +1,1 @@
-# SOM-One-Shot-Learning
-
+# SomOneShot
