@@ -1,0 +1,15 @@
+ava-130.tar filter=lfs diff=lfs merge=lfs -text
+tom.tar filter=lfs diff=lfs merge=lfs -text
+kate-130.tar filter=lfs diff=lfs merge=lfs -text
+tom-130.tar filter=lfs diff=lfs merge=lfs -text
+allison-130.tar filter=lfs diff=lfs merge=lfs -text
+ava.tar filter=lfs diff=lfs merge=lfs -text
+kate.tar filter=lfs diff=lfs merge=lfs -text
+lee-130.tar filter=lfs diff=lfs merge=lfs -text
+allison.tar filter=lfs diff=lfs merge=lfs -text
+daniel-130.tar filter=lfs diff=lfs merge=lfs -text
+daniel.tar filter=lfs diff=lfs merge=lfs -text
+lee.tar filter=lfs diff=lfs merge=lfs -text
+susan-130.tar filter=lfs diff=lfs merge=lfs -text
+susan.tar filter=lfs diff=lfs merge=lfs -text
+*.tar filter=lfs diff=lfs merge=lfs -text

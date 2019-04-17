@@ -1,0 +1,6 @@
+__*__*
+*.pkl
+*.pyc
+*/data
+.DS_Store
+/data
