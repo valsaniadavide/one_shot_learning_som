@@ -1,5 +1,4 @@
 import random
-import numpy as np
 
 
 def get_class_input_indexes(class_list, classes):
@@ -30,7 +29,7 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
     :param n_class_examples_train: number of examples required for train
     :param n_class_examples_test: number of examples required for test (if -1 are returned all remaining
                                     examples after train filtering)
-    :return: list of training examples with corresponding label (new_xs_train, new_ys_train) and list of training
+    :return: list of training examples with corresponding label (new_xs_train, new_ys_train) and list of test
                 examples with corresponding label (new_xs_test, new_ys_test)
     """
     new_xs_train, new_ys_train = [], []
@@ -38,7 +37,7 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
     class_indexes = get_class_input_indexes(ys, classes)
     for i in range(0, n_class_examples_train):
         for class_elements in class_indexes:
-            # random.seed(10)
+            random.seed(10)
             index_random_element = random.choice(class_elements)
             class_elements.remove(index_random_element)
             new_xs_train.append(xs[index_random_element])

@@ -157,7 +157,7 @@ def show_som(som, xs, ys, labels, title, files=None, show=False, dark=True, scat
     if legend & len(classes) <= 10:
         plt.legend(handles=patch_list, loc='center left', bbox_to_anchor=(1, 0.5))
     img_name = 'som_{}x{}_s{}_a{}_{}.png'.format(som._m, som._n, som.sigma, som.alpha, suffix)
-    img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', img_name)
+    img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'som_mapping', img_name)
     print('Saving file: {} ...'.format(img_path))
     fig.tight_layout()
     if show:
@@ -167,7 +167,7 @@ def show_som(som, xs, ys, labels, title, files=None, show=False, dark=True, scat
     plt.close()
 
 
-def show_confusion(som, xs, ys, title="SOM confusion", palette="viridis"):
+def show_confusion(som, xs, ys, title="SOM confusion", palette="viridis", suffix='visual'):
     # matplotlib.use('TkAgg')  # in order to print something
     matplotlib.rcParams.update({'font.size': 16})
     print('Building graph "{}"...'.format(title))
@@ -195,12 +195,15 @@ def show_confusion(som, xs, ys, title="SOM confusion", palette="viridis"):
                 confusion_map[x, y] = np.sum(counts[1:]) / np.sum(counts)
 
     print('Done mapping inputs, preparing canvas...')
-    img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'confusion_map')
+    img_name = 'confusion_map_som_{}x{}_s{}_a{}_{}.png'.format(som._m, som._n, som.sigma, som.alpha, suffix)
+    img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'som_confusion', img_name)
     plt.imshow(confusion_map * scaler, cmap=palette, origin="lower", clim=(0.0, 1.0))
     plt.axis('off')
     plt.colorbar()
     plt.savefig(img_path)
     # plt.show()
+    plt.close()
+    print('Done, saved figure')
 
 
 def classPrototype(inputs, nameInputs):

@@ -291,7 +291,7 @@ class SOM(object):
             old_test_comp = [0]
             for iter_no in range(self._n_iterations):
                 if iter_no % 5 == 0:
-                    print('Iteration {}'.format(iter_no))
+                    # print('Iteration {}'.format(iter_no))
                     # delta sanity check
                     delta = self._sess.run(self.weightage_delta, feed_dict={self._vect_input: input_vects[0:1],
                                                                             self._iter_input: iter_no})
@@ -325,8 +325,8 @@ class SOM(object):
                             train_comp = old_train_comp
                             train_comp, train_confusion, train_worst_confusion, train_usage_rate = self.compactness_stats(
                                 input_vects, input_classes)
-                            print('Train compactness: {}'.format(np.mean(train_comp)))
-                            print('Train confusion: {}'.format(train_confusion))
+                            # print('Train compactness: {}'.format(np.mean(train_comp)))
+                            # print('Train confusion: {}'.format(train_confusion))
                             old_train_comp = train_comp
                             train_mean_conv, train_var_conv, train_conv = self.population_based_convergence(input_vects)
                             train_quant_error = self.quantization_error(input_vects)
@@ -339,8 +339,8 @@ class SOM(object):
                             test_comp = old_test_comp
                             test_comp, test_confusion, test_worst_confusion, test_usage_rate = self.compactness_stats(
                                 test_vects, test_classes, train=False)
-                            print('Test compactness: {}'.format(np.mean(test_comp)))
-                            print('Test confusion: {}'.format(test_confusion))
+                            # print('Test compactness: {}'.format(np.mean(test_comp)))
+                            # print('Test confusion: {}'.format(test_confusion))
                             old_test_comp = test_comp
                             test_mean_conv, test_var_conv, test_conv = self.population_based_convergence(test_vects)
                             test_quant_error = self.quantization_error(test_vects)
@@ -376,8 +376,8 @@ class SOM(object):
                     if not os.path.exists(self.checkpoint_loc):
                         os.makedirs(self.checkpoint_loc)
                     path = dirpath + 'model'
-                    print('Saving in {}'.format(path))
-                    saver.save(self._sess, path, global_step=iter_no)
+                    # print('Saving in {}'.format(path))
+                    # saver.save(self._sess, path, global_step=iter_no)
             for i, loc in enumerate(self._locations):
                 centroid_grid[loc[0]].append(self._weightages[i])
             self._centroid_grid = centroid_grid
@@ -389,8 +389,8 @@ class SOM(object):
             if not os.path.exists(self.checkpoint_loc):
                 os.makedirs(self.checkpoint_loc)
             path = dirpath + 'model'
-            print('Saving in {}'.format(path))
-            saver.save(self._sess, path)
+            # print('Saving in {}'.format(path))
+            # saver.save(self._sess, path)
 
     def restore_trained(self, path):
         """
@@ -542,6 +542,17 @@ class SOM(object):
         print('Compactness Variance: {}'.format(np.var(class_comp)))
         print('Confusion: {}'.format(np.mean(confusion)))
 
+    def compute_compactness_confusion(self, input_vects, ys):
+        """
+        Compute compactness and confusion for vector in input
+        :param input_vects: data vector used to compute compactness and confusion
+        :param ys: labels associated to input_vects
+        :return: mean compactness, compactness variance, mean confusion
+        """
+        class_comp = self.compactness_stats(input_vects, ys, train=False)
+        _, confusion = self.map_vects_confusion(input_vects, ys)
+        return np.mean(class_comp), np.var(class_comp), np.mean(confusion)
+
     def neuron_collapse(self, input_vects, bmu_positions=None):
         if bmu_positions == None:
             bmu_positions = self.map_vects_memory_aware(input_vects)
@@ -676,6 +687,7 @@ class SOM(object):
             plt.text(m[1], m[0], color_names[y[i]], ha='center', va='center',
                      bbox=dict(facecolor=color_names[y[i]], alpha=0.5, lw=0))
         plt.savefig(os.path.join(Constants.PLOT_FOLDER, plot_name))
+        plt.close()
 
     def compactness_stats(self, xs, ys, train=True, strategy='memory-aware'):
         confusion = [0]
@@ -716,7 +728,7 @@ class SOM(object):
                 self.test_inter_class_distance = inter_class_distance
         if train == True:
             class_comp = intra_class_distance / self.train_inter_class_distance
-            print("intra {} inter {}".format(intra_class_distance, self.train_inter_class_distance))
+            # print("intra {} inter {}".format(intra_class_distance, self.train_inter_class_distance))
         else:
             class_comp = intra_class_distance / self.test_inter_class_distance
         return class_comp, confusion, worst_confusion, usage_rate
