@@ -1,16 +1,11 @@
 import os
-import numpy as np
 import pandas as pd
-import random
 
 from models.som.HebbianModel import HebbianModel
 from models.som.SOM import SOM
-from models.som.SOMTest import show_som, show_confusion
 from oneShotLearning.utility import *
 
 from utils.constants import Constants
-from utils.utils import from_csv_with_filenames, from_csv_visual_10classes
-from oneShotLearning.one_shot import print_pca
 
 audio_data_path = os.path.join(Constants.DATA_FOLDER,
                                '10classes',
@@ -21,8 +16,7 @@ visual_data_path = os.path.join(Constants.DATA_FOLDER,
 classes = list(range(0, 10))
 columns_stat = ['n', 'm', 'alpha', 'sigma', 'accuracy_train', 'accuracy_test', 'v_compact', 'v_compact_var', 'v_confus',
                 'a_compact', 'a_compact_var', 'a_confus']
-label_classes = ['Class 0', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8',
-                 'Class 9']
+label_classes = ['table', 'mug', 'tree', 'dog', 'house', 'book', 'guitar', 'fish', 'cat', 'bird']
 
 if __name__ == '__main__':
     v_xs, v_ys, a_xs, a_ys = import_data(visual_data_path, audio_data_path)

@@ -1,3 +1,4 @@
+pandas
 absl-py==0.5.0
 astor==0.7.1
 cycler==0.10.0
