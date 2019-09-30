@@ -2,7 +2,6 @@ import os
 import numpy as np
 import pandas as pd
 import random
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 from models.som.HebbianModel import HebbianModel
 from models.som.SOM import SOM
@@ -26,14 +25,7 @@ label_classes = ['Class 0', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5
                  'Class 9']
 
 if __name__ == '__main__':
-    print('classes', classes)
-    a_xs, a_ys, _ = from_csv_with_filenames(audio_data_path)
-    v_xs, v_ys = from_csv_visual_10classes(visual_data_path)
-    a_ys = [int(y) - 1000 for y in a_ys]
-    v_ys = [int(y) - 1000 for y in v_ys]
-    # scale data to 0-1 range
-    a_xs = StandardScaler().fit_transform(a_xs)
-    v_xs = StandardScaler().fit_transform(v_xs)
+    v_xs, v_ys, a_xs, a_ys = import_data(visual_data_path, audio_data_path)
 
     stats = []
     for i in range(0, 20):
@@ -48,8 +40,8 @@ if __name__ == '__main__':
         a_dim = len(a_xs[0])
         v_dim = len(v_xs[0])
         random.seed(a=None, version=2)
-        learning_rate = round(random.uniform(0.2, 0.45), 2)
-        sigma = random.randrange(75, 100, 5)
+        learning_rate = round(random.uniform(0.2, 0.35), 2)
+        sigma = random.randrange(75, 100, 3)
 
         som_a = SOM(20, 30, a_dim, alpha=learning_rate, sigma=sigma, n_iterations=1000, batch_size=1)
         # type_file = 'visual_' + str(i + 1)
@@ -61,12 +53,9 @@ if __name__ == '__main__':
 
         # som_v.print_som_evaluation(v_xs_test, v_ys_test)
         # som_v.neuron_collapse_classwise(v_xs_test, v_ys_test)
-        show_som(som_v, v_xs_test, v_ys_test, label_classes,
-                 'Video SOM', dark=False, suffix='visual')
-        show_som(som_a, a_xs_test, a_ys_test, label_classes,
-                 'Audio SOM', dark=False, suffix='audio')
-        show_confusion(som_v, v_xs_test, v_ys_test, title="Video SOM confusion", suffix='visual')
-        show_confusion(som_a, a_xs_test, a_ys_test, title="Audio SOM confusion", suffix='audio')
+        print_charts(som_v, v_xs_test, v_ys_test, label_classes, 'visual', "Visual SOM")
+        print_charts(som_a, a_xs_test, a_ys_test, label_classes, 'Audio', "Audio SOM")
+
         v_compact, v_compact_var, v_confus = som_v.compute_compactness_confusion(v_xs_test, v_ys_test)
         a_compact, a_compact_var, a_confus = som_a.compute_compactness_confusion(a_xs_test, a_ys_test)
         # som_v.plot_som(v_xs_test, v_ys_test, plot_name='som-vis.png')
@@ -79,10 +68,12 @@ if __name__ == '__main__':
                                                 prediction_alg='regular')
         accuracy_test = hebbian_model.evaluate(a_xs_test, v_xs_test, a_ys_test, v_ys_test, source='v',
                                                prediction_alg='regular')
-        print("Accuracy Training set", accuracy_train)
-        print("Accuracy Test set", accuracy_test)
+
         stats.append([som_v._n, som_v._m, learning_rate, sigma, accuracy_train, accuracy_test, v_compact, v_compact_var,
                       v_confus, a_compact, a_compact_var, a_confus])
+
+        print("Accuracy Training set", accuracy_train)
+        print("Accuracy Test set", accuracy_test)
         print('test_n={}, n={}, m={}, learning_rate={}, sigma={}, accuracy_train={}, accuracy_test={}, v_compact={}, '
               'v_compact_var={}, v_confus={}, a_compact={}, a_compact_var={}, a_confus={} '
               .format(i, som_v._n, som_v._m, learning_rate, sigma, accuracy_train, accuracy_test, v_compact,

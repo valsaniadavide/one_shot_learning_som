@@ -1,5 +1,9 @@
 import random
 
+from models.som.SOMTest import show_som, show_confusion
+from utils.utils import from_csv_with_filenames, from_csv_visual_10classes
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
 
 def get_class_input_indexes(class_list, classes):
     """
@@ -57,3 +61,20 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
                 new_ys_test.append(ys[class_elements[index]])
 
     return new_xs_train, new_ys_train, new_xs_test, new_ys_test
+
+
+def import_data(visual_data_path, audio_data_path):
+    a_xs, a_ys, _ = from_csv_with_filenames(audio_data_path)
+    v_xs, v_ys = from_csv_visual_10classes(visual_data_path)
+    a_ys = [int(y) - 1000 for y in a_ys]
+    v_ys = [int(y) - 1000 for y in v_ys]
+    # scale data to 0-1 range
+    a_xs = StandardScaler().fit_transform(a_xs)
+    v_xs = StandardScaler().fit_transform(v_xs)
+    return v_xs, v_ys, a_xs, a_ys
+
+
+def print_charts(som, xs, ys, label_classes, suffix, title):
+    show_som(som, xs, ys, label_classes,
+             title, dark=False, suffix=suffix)
+    show_confusion(som, xs, ys, title=title, suffix=suffix)
