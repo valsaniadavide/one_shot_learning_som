@@ -44,14 +44,14 @@ def plot_data(row):
     autolabel(rects1)
     autolabel(rects2)
     fig.tight_layout()
-    image_path = os.path.join(Constants.ROOT_FOLDER, 'oneShotLearning', 'statistics', 'Test a.0.3-0.45_s.75-95',
+    image_path = os.path.join(Constants.ROOT_FOLDER, 'oneShotLearning', 'statistics', 'Test a.0.01-0.30_s.5-20',
                               'compactness', 'compactness_som_a={}_s={}.png'.format(alpha, sigma))
     plt.savefig(image_path)
     plt.close()
 
 
 if __name__ == '__main__':
-    path = os.path.join(Constants.ROOT_FOLDER, 'oneShotLearning', 'statistics', 'Test a.0.3-0.45_s.75-95',
+    path = os.path.join(Constants.ROOT_FOLDER, 'oneShotLearning', 'statistics', 'Test a.0.01-0.30_s.5-20',
                         'statistics.csv')
     df = pd.read_csv(path)
     print(df.head(n=10))

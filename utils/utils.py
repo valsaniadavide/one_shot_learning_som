@@ -11,6 +11,7 @@ import datetime
 from sklearn.decomposition import PCA
 from utils.constants import Constants
 
+
 def fix_seq_length(xs, length=50):
     truncated = 0
     padded = 0
@@ -24,8 +25,9 @@ def fix_seq_length(xs, length=50):
             padded += 1
         xs[i] = x
     print('xs[0]: {}'.format(str(xs[0].shape)))
-    print('Truncated {}; Padded {}'.format(truncated/len(xs), padded/len(xs)))
+    print('Truncated {}; Padded {}'.format(truncated / len(xs), padded / len(xs)))
     return xs
+
 
 def apply_pca(xs, n_components=25):
     pca = PCA(n_components=n_components)
@@ -34,6 +36,7 @@ def apply_pca(xs, n_components=25):
     xs = [pca.transform(x) for x in xs]
     print('xs[0]: {}'.format(str(xs[0].shape)))
     return xs
+
 
 def pad_np_arrays(X):
     ''' Pads a list of numpy arrays. The one with maximum length will force the others to its length.'''
@@ -52,6 +55,7 @@ def pad_np_arrays(X):
     logging.debug('Shape of dataset after padding: ' + str(np.shape(X_padded)))
     return X_padded
 
+
 def array_to_sparse_tuple(X):
     indices = []
     values = []
@@ -61,6 +65,7 @@ def array_to_sparse_tuple(X):
             values.append(X[i, j])
     return indices, values
 
+
 def array_to_sparse_tuple_1d(X):
     indices = []
     values = []
@@ -69,14 +74,17 @@ def array_to_sparse_tuple_1d(X):
         values.append(X[i])
     return indices, values
 
+
 def get_next_batch_index(possible_list):
     i = random.randrange(0, len(possible_list))
     return possible_list[i]
+
 
 def load_from_pickle(path):
     with open(path, 'rb') as f:
         activations = pickle.load(f)
     return activations
+
 
 def extract_key(keyname):
     extract_key.re = re.compile(r".*/(\d+)")
@@ -84,6 +92,7 @@ def extract_key(keyname):
     if match == None:
         raise "Cannot match a label in key: %s" % (keyname)
     return match.group(1)
+
 
 def load_data(filename):
     """
@@ -100,10 +109,11 @@ def load_data(filename):
 
     for key in data.keys():
         xs.append(data[key])
-        #ys.append(extract_key(key))
+        # ys.append(extract_key(key))
         ys.append(key)
 
-    return (xs,ys)
+    return (xs, ys)
+
 
 def to_csv(xs, ys, path, filename_list=None):
     np.set_printoptions(threshold=np.inf)
@@ -120,6 +130,7 @@ def to_csv(xs, ys, path, filename_list=None):
             i += 1
     np.set_printoptions(threshold=1000)
 
+
 def from_csv(path):
     xs = []
     ys = []
@@ -131,6 +142,7 @@ def from_csv(path):
             xs.append(x)
             ys.append(y)
     return xs, ys
+
 
 def from_csv_with_filenames(path):
     xs = []
@@ -144,23 +156,28 @@ def from_csv_with_filenames(path):
             filenames.append(l[0])
     return xs, ys, filenames
 
+
 def infer_label_10classes(label_string, labels_dict):
     label_string = label_string.split('/')[5]
     return int(labels_dict[label_string])
 
+
 def from_csv_visual_10classes(path):
-    f = open(path,'r')
+    f = open(path, 'r')
     labels_dict_path = os.path.join(Constants.DATA_FOLDER, 'imagenet-labels.json')
     labels_dict = json.load(open(labels_dict_path))
     labels_dict = {v: k for k, v in labels_dict.items()}
     xs = []
     ys = []
+    filenames = []
     for l in f:
         lSplit = l.split(',')
+        filenames.append(lSplit[0])
         xs.append(np.array(lSplit[1:]).astype(float))
         ys.append(infer_label_10classes(lSplit[0], labels_dict))
     f.close()
-    return xs, ys
+    return xs, ys, filenames
+
 
 def synsets_txt_to_dict(txt_path):
     """
@@ -182,7 +199,7 @@ def synsets_txt_to_dict(txt_path):
 
 
 def from_csv_visual_100classes(path):
-    f = open(path,'r')
+    f = open(path, 'r')
     labels_txt_path = os.path.join(Constants.DATA_FOLDER, '100classes',
                                    'thesis_synsets_fix.txt')
     synset_dict = synsets_txt_to_dict(labels_txt_path)
@@ -200,10 +217,12 @@ def from_csv_visual_100classes(path):
     f.close()
     return xs, ys
 
+
 def softmax(x):
     e_x = np.exp(x - np.max(x))
     out = e_x / e_x.sum()
     return out
+
 
 def get_plot_filename(folder_path):
     date_str = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -212,12 +231,13 @@ def get_plot_filename(folder_path):
         i += 1
     return date_str + "_" + str(i) + '.png'
 
+
 def create_folds(a_xs, v_xs, a_ys, v_ys, n_folds=1, n_classes=100):
     '''
     In this context, a fold is an array of data that has n_folds examples
     from each class.
     '''
-    #assert len(a_xs) == len(v_xs) == len(a_ys) == len(v_ys)
+    # assert len(a_xs) == len(v_xs) == len(a_ys) == len(v_ys)
     assert n_folds * n_classes <= len(a_xs)
     ind = a_ys.argsort()
     a_xs = a_xs[ind]
@@ -249,6 +269,7 @@ def create_folds(a_xs, v_xs, a_ys, v_ys, n_folds=1, n_classes=100):
             del v_xs_[v_idx]
             del v_ys_[v_idx]
     return a_xs_fold, v_xs_fold, a_ys_fold, v_ys_fold
+
 
 def transform_data(xs, test_xs, rotation=True):
     '''

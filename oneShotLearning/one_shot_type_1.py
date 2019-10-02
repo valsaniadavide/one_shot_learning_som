@@ -19,8 +19,7 @@ columns_stat = ['n', 'm', 'alpha', 'sigma', 'accuracy_train', 'accuracy_test', '
 label_classes = ['table', 'mug', 'tree', 'dog', 'house', 'book', 'guitar', 'fish', 'cat', 'bird']
 
 if __name__ == '__main__':
-    v_xs, v_ys, a_xs, a_ys = import_data(visual_data_path, audio_data_path)
-
+    v_xs, v_ys, a_xs, a_ys, filenames_visual, filenames_audio = import_data(visual_data_path, audio_data_path)
     stats = []
     for i in range(0, 20):
         a_xs_train, a_ys_train, a_xs_test, a_ys_test = get_random_classes(a_xs, a_ys, classes, 10, -1)
@@ -34,8 +33,8 @@ if __name__ == '__main__':
         a_dim = len(a_xs[0])
         v_dim = len(v_xs[0])
         random.seed(a=None, version=2)
-        learning_rate = round(random.uniform(0.2, 0.35), 2)
-        sigma = random.randrange(75, 100, 3)
+        learning_rate = round(random.uniform(0.01, 0.3), 2)
+        sigma = random.randrange(5, 20, 2)
 
         som_a = SOM(20, 30, a_dim, alpha=learning_rate, sigma=sigma, n_iterations=1000, batch_size=1)
         # type_file = 'visual_' + str(i + 1)
