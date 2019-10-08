@@ -7,7 +7,10 @@ class Constants():
         os.path.abspath(os.path.join(os.path.abspath(__file__), os.pardir)))
     TRAINED_MODELS_FOLDER = os.path.join(ROOT_FOLDER, 'trained-models')
     DATA_FOLDER = os.path.join(ROOT_FOLDER, 'data')
+    DATA2_FOLDER = os.path.join(ROOT_FOLDER, 'data-2')
     PLOT_FOLDER = os.path.join(DATA_FOLDER, 'plots')
+    SAVED_MODELS = os.path.join(DATA_FOLDER, 'saved_models')
+    TBLOGS = os.path.join(DATA_FOLDER, 'tblogs')
     AUDIO_DATA_FOLDER = os.path.join(DATA_FOLDER, 'audio')
     TIMIT_DATA_FOLDER = os.path.join(DATA_FOLDER, 'timit')
     AVAILABLE_SPEAKERS = ['tom', 'allison', 'daniel', 'ava', 'lee', 'susan', 'tom-130', 'allison-130', 'daniel-130',
@@ -20,8 +23,23 @@ class Constants():
     BATCH_SIZE = 32
     OPTIMIZER_DESCR = "adam"
 
+    audio_data_path = os.path.join(DATA_FOLDER,
+                                   '10classes',
+                                   'audio_data_25t.csv')
+    visual_data_path = os.path.join(DATA_FOLDER,
+                                    '10classes',
+                                    'VisualInputTrainingSet.csv')
+    classes = list(range(0, 10))
+
+    columns_stat = ['n', 'm', 'alpha', 'sigma', 'accuracy_train', 'accuracy_test', 'v_mean_compactness',
+                    'v_mean_variance',
+                    'a_mean_compactness', 'a_mean_variance', 'v_compact', 'v_compact_var', 'v_confus',
+                    'a_compact', 'a_compact_var', 'a_confus']
+
+    label_classes = ['table', 'mug', 'tree', 'dog', 'house', 'book', 'guitar', 'fish', 'cat', 'bird']
+
     ID_STRING = "graves_" + str(NUM_LAYERS) + "l_" + str(NUM_HIDDEN) + \
-        "h_" + str(BATCH_SIZE) + "b_" + OPTIMIZER_DESCR
+                "h_" + str(BATCH_SIZE) + "b_" + OPTIMIZER_DESCR
 
     '''A mapping from phonemes to classes, as described in Kai fu Lee and Hsiao wuen Hon,
     "Speaker-independent phone recognition using hidden markov models". Briefly, not all
@@ -74,6 +92,7 @@ class Constants():
 
 if __name__ == '__main__':
     import operator
+
     sorted_dict = sorted(Constants.TIMIT_PHONEME_DICT.items(),
                          key=operator.itemgetter(1))
     old_value = 0

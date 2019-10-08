@@ -2,7 +2,7 @@ import random
 
 from models.som.SOMTest import show_som, show_confusion
 from utils.utils import from_csv_with_filenames, from_csv_visual_10classes
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, MaxAbsScaler, Normalizer
 
 
 def get_class_input_indexes(class_list, classes):
@@ -41,7 +41,7 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
     class_indexes = get_class_input_indexes(ys, classes)
     for i in range(0, n_class_examples_train):
         for class_elements in class_indexes:
-            random.seed(10)
+            random.seed(30)
             index_random_element = random.choice(class_elements)
             class_elements.remove(index_random_element)
             new_xs_train.append(xs[index_random_element])

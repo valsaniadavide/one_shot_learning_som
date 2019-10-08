@@ -105,7 +105,7 @@ def show_som(som, xs, ys, labels, title, files=None, show=False, dark=True, scat
         bmu_list.append(np.unique(class_bmu, axis=0, return_counts=True))
     print('Done mapping inputs, preparing canvas...')
     # for 80 classes readability
-    palette = 'cubehelix' if len(classes) > 10 else "dark"
+    palette = 'cubehelix' if len(classes) > 10 else "bright"
 
     fig = plt.figure(figsize=(11, 6.5))
     if dark:

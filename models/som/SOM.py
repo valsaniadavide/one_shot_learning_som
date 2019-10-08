@@ -22,6 +22,7 @@ import os
 import matplotlib
 import sys
 
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 matplotlib.use('Agg')
 matplotlib.rcParams.update({'font.size': 8})
 import matplotlib.pyplot as plt
@@ -32,6 +33,7 @@ from scipy.stats import norm
 from profilehooks import profile
 import time
 import bisect
+import pandas as pd
 
 
 class SOM(object):
@@ -240,6 +242,8 @@ class SOM(object):
             init_op = tf.global_variables_initializer()
             self._sess.run(init_op)
 
+            self._random_initial_weights = self._weightage_vects.eval(session=self._sess)
+
     def _get_weight_delta(self, learning_rate_matrix):
         """
         """
@@ -287,6 +291,10 @@ class SOM(object):
         with self._sess:
             saver = tf.train.Saver(max_to_keep=int(np.ceil(self._n_iterations / save_every)))
             summary_writer = tf.summary.FileWriter(self.logs_path)
+
+            # path = os.path.join(Constants.DATA_FOLDER, 'plots', 'temp', '{}_weights.csv'.format(self.data))
+            # pd.DataFrame(self._weightage_vects.eval()).to_csv(path)
+
             old_train_comp = [0]
             old_test_comp = [0]
             for iter_no in range(self._n_iterations):

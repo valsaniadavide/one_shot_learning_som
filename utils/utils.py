@@ -225,11 +225,8 @@ def softmax(x):
 
 
 def get_plot_filename(folder_path):
-    date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-    i = 0
-    while os.path.exists(os.path.join(folder_path, date_str + "_" + str(i)) + '.png'):
-        i += 1
-    return date_str + "_" + str(i) + '.png'
+    date_str = datetime.datetime.now().strftime("%Y.%m.%d_%H.%M.%S")
+    return date_str + '.png'
 
 
 def create_folds(a_xs, v_xs, a_ys, v_ys, n_folds=1, n_classes=100):
@@ -271,11 +268,15 @@ def create_folds(a_xs, v_xs, a_ys, v_ys, n_folds=1, n_classes=100):
     return a_xs_fold, v_xs_fold, a_ys_fold, v_ys_fold
 
 
-def transform_data(xs, test_xs, rotation=True):
+def transform_data(xs, test_xs=None, rotation=True):
     '''
     Makes the column-wise mean of the input matrix xs 0; renders the variance 1;
     uses the eigenvector matrix $U^T$ to center the data around the direction
     of maximum variation in the data matrix xs.
+    :param ndarray xs:      numpy array (n1,_n_dims) with data to normalize
+    :param ndarray test_xs: numpy array (n2, n_dims) with extra data to transform. Not required
+    :param bool rotation:   rotate data to match eigenvectors when True
+    :return:    transformed data matrices
     '''
     xs -= np.mean(xs, axis=0)
     xs /= np.std(xs, axis=0)
@@ -286,8 +287,76 @@ def transform_data(xs, test_xs, rotation=True):
         eig_vecs = eig_vecs[idx]
         xs = np.dot(eig_vecs.T, xs.T).T
 
-    test_xs -= np.mean(xs, axis=0)
-    test_xs /= np.std(xs, axis=0)
-    if rotation:
-        test_xs = np.dot(eig_vecs.T, xs.T).T
+    if test_xs is not None:
+        test_xs -= np.mean(xs, axis=0)
+        test_xs /= np.std(xs, axis=0)
+        if rotation:
+            test_xs = np.dot(eig_vecs.T, xs.T).T
     return xs, test_xs
+
+
+def global_transform(xs, test_xs=None):
+    """
+    Computes a z-score standardization with global mean and std.
+    :param xs:      numpy array containing data, shape (n1, n_dims)
+    :param test_xs: numpy array with extra data, shape (n2, n_dims)
+    :return:        transformed data matrices
+    """
+    m = np.mean(xs)
+    s = np.std(xs)
+    z = (xs - m) / s
+    z_test = None
+    if test_xs is not None:
+        z_test = (test_xs - m) / s
+    return z, z_test
+
+
+def min_max_scale(xs):
+    m = xs.min()
+    M = xs.max()
+    return (xs - m) / (M - m)
+
+
+def from_npy_visual_data(path, classes=10):
+    """
+    Read a numpy array pickled as file .npy
+    :param str path:     file containing the numpy array
+    :param int classes:  number of classes in the data, useful for ID assignment
+    :return:   data examples, labels, and id conversion dictionary
+    """
+    data = np.load(path)
+    xs = data[:, :-1]
+    labels = data[:, -1].astype(np.int)
+
+    uniques = np.unique(labels).tolist()
+    assert np.unique(uniques).size == classes
+
+    id_to_index = {label: index for index, label in enumerate(uniques)}
+    index_to_id = {v: k for k, v in id_to_index.items()}
+    ys = np.array([id_to_index[l] for l in labels])
+    return xs, ys, index_to_id
+
+
+def from_npy_audio_data(path, classes=10):
+    """
+    Read a numpy array pickled as file .npy
+    :param str path:     file containing the numpy array
+    :param int classes:  number of classes in the data, useful for ID assignment
+    :return:   data examples, labels, and id conversion dictionary
+    """
+    data = np.load(path)
+    xs = data[:, :-1]
+    ys = data[:, -1].astype(np.int)
+    return xs, ys
+
+
+def labels_dictionary(filename):
+    """
+    Generates a python dictionary from the corresponding json file
+    :param str filename: string of the json dictionary
+    :return:   dict <int, string> with ids and labels
+    """
+    with open(filename) as f:
+        labels_dict = json.load(f)
+    labels_dict = {int(k): v for k, v in labels_dict.items()}
+    return labels_dict
