@@ -1,21 +1,13 @@
-import os, shutil
+import os
+
+from oneShotLearning.utility import clean_folders
 from utils.constants import Constants
 
 
-def clean_folders(path):
-    for the_file in os.listdir(path):
-        file_path = os.path.join(path, the_file)
-        try:
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print(e)
-
-
 def clean_statistics_folders():
-    clean_folders(os.path.join(Constants.PLOT_FOLDER, 'temp', 'som_confusion'))
-    clean_folders(os.path.join(Constants.PLOT_FOLDER, 'temp', 'som_mapping'))
+    clean_folders(os.path.join(Constants.PLOT_FOLDER, 'temp', 'test_data', 'som_confusion'))
+    clean_folders(os.path.join(Constants.PLOT_FOLDER, 'temp', 'training_data', 'som_confusion'))
+    clean_folders(os.path.join(Constants.PLOT_FOLDER, 'temp', 'test_data', 'som_mapping'))
+    clean_folders(os.path.join(Constants.PLOT_FOLDER, 'temp', 'training_data', 'som_mapping'))
     clean_folders(os.path.join(Constants.SAVED_MODELS))
     clean_folders(os.path.join(Constants.TBLOGS))

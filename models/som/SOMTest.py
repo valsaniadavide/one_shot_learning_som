@@ -82,7 +82,7 @@ def printToFileCSV(prototipi, file):
 
 
 def show_som(som, xs, ys, labels, title, files=None, show=False, dark=True, scatter=True, point_size=48, legend=True,
-             suffix=''):
+             suffix='', subpath='test_data'):
     """
     Generates a plot displaying the SOM with its active BMUs and the relative examples
     associated with them. Each class is associated with a different color.
@@ -95,7 +95,7 @@ def show_som(som, xs, ys, labels, title, files=None, show=False, dark=True, scat
     """
     # matplotlib.use('TkAgg')  # in order to print something
     matplotlib.rcParams.update({'font.size': 16})
-    print('Building graph "{}"...'.format(title))
+    # print('Building graph "{}"...'.format(title))
     classes = np.unique(ys)
     mapped = np.array(som.map_vects(xs))
 
@@ -103,7 +103,7 @@ def show_som(som, xs, ys, labels, title, files=None, show=False, dark=True, scat
     for c in classes:
         class_bmu = mapped[np.where(ys == c)]
         bmu_list.append(np.unique(class_bmu, axis=0, return_counts=True))
-    print('Done mapping inputs, preparing canvas...')
+    # print('Done mapping inputs, preparing canvas...')
     # for 80 classes readability
     palette = 'cubehelix' if len(classes) > 10 else "bright"
 
@@ -127,7 +127,7 @@ def show_som(som, xs, ys, labels, title, files=None, show=False, dark=True, scat
     colors = sb.color_palette(palette, n_colors=len(classes))
     color_dict = {label: col for label, col in zip(classes, colors)}
 
-    print('Adding labels for each mapped input...', end='')
+    # print('Adding labels for each mapped input...', end='')
     if files == None:
         if scatter:
             for i, (bmu, counts) in enumerate(bmu_list):
@@ -146,9 +146,9 @@ def show_som(som, xs, ys, labels, title, files=None, show=False, dark=True, scat
                      alpha=0.5,
                      bbox=dict(facecolor=color_dict[ys[i]], alpha=0.8, lw=0, boxstyle='round4'))
             print('{}: {}'.format(i, files[i]))
-    print('done.')
+    # print('done.')
 
-    print('Drawing legend...')
+    # print('Drawing legend...')
     patch_list = []
     for i in range(len(classes)):
         patch = m_patches.Patch(color=colors[i], label=labels[i])
@@ -157,8 +157,8 @@ def show_som(som, xs, ys, labels, title, files=None, show=False, dark=True, scat
     if legend & len(classes) <= 10:
         plt.legend(handles=patch_list, loc='center left', bbox_to_anchor=(1, 0.5))
     img_name = 'som_{}x{}_s{}_a{}_{}.png'.format(som._m, som._n, som.sigma, som.alpha, suffix)
-    img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'som_mapping', img_name)
-    print('Saving file: {} ...'.format(img_path))
+    img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', subpath, 'som_mapping', img_name)
+    # print('Saving file: {} ...'.format(img_path))
     fig.tight_layout()
     if show:
         plt.show()
@@ -167,10 +167,10 @@ def show_som(som, xs, ys, labels, title, files=None, show=False, dark=True, scat
     plt.close()
 
 
-def show_confusion(som, xs, ys, title="SOM confusion", palette="viridis", suffix='visual'):
+def show_confusion(som, xs, ys, title="SOM confusion", palette="viridis", suffix='visual', subpath='test_data'):
     # matplotlib.use('TkAgg')  # in order to print something
     matplotlib.rcParams.update({'font.size': 16})
-    print('Building graph "{}"...'.format(title))
+    # print('Building graph "{}"...'.format(title))
     classes = np.unique(ys)
     mapped = np.array(som.map_vects(xs))
     confusion_map = np.zeros((som._m, som._n))
@@ -194,16 +194,16 @@ def show_confusion(som, xs, ys, title="SOM confusion", palette="viridis", suffix
                 counts = np.sort(-counts)
                 confusion_map[x, y] = np.sum(counts[1:]) / np.sum(counts)
 
-    print('Done mapping inputs, preparing canvas...')
+    # print('Done mapping inputs, preparing canvas...')
     img_name = 'confusion_map_som_{}x{}_s{}_a{}_{}.png'.format(som._m, som._n, som.sigma, som.alpha, suffix)
-    img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'som_confusion', img_name)
+    img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', subpath, 'som_confusion', img_name)
     plt.imshow(confusion_map * scaler, cmap=palette, origin="lower", clim=(0.0, 1.0))
     plt.axis('off')
     plt.colorbar()
     plt.savefig(img_path)
     # plt.show()
     plt.close()
-    print('Done, saved figure')
+    # print('Done, saved figure')
 
 
 def classPrototype(inputs, nameInputs):

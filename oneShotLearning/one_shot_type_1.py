@@ -8,36 +8,51 @@ from oneShotLearning.utility import *
 from oneShotLearning.clean_folders import clean_statistics_folders
 from oneShotLearning.input_tests import get_min_max_mean_input_feature
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, MaxAbsScaler
-
-
+from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering, AffinityPropagation
+from sklearn.metrics import accuracy_score
 from utils.constants import Constants
 from utils.utils import from_npy_visual_data
 
 if __name__ == '__main__':
     xs, ys, a_xs, a_ys, filenames_visual, filenames_audio = import_data(Constants.visual_data_path,
-                                                                            Constants.audio_data_path)
+                                                                        Constants.audio_data_path)
     stats = []
     v_xs, v_ys, _ = from_npy_visual_data(os.path.join(Constants.DATA2_FOLDER, 'visual_10classes_train_as.npy'))
     v_xs = StandardScaler().fit_transform(v_xs)
+
     a_xs_train, a_ys_train, a_xs_test, a_ys_test = get_random_classes(a_xs, a_ys, Constants.classes, 10, -1)
-    v_xs_train, v_ys_train, v_xs_test, v_ys_test = get_random_classes(v_xs, v_ys, Constants.classes, 10, -1)
+    v_xs_train, v_ys_train, v_xs_test, v_ys_test = get_random_classes(xs, ys, Constants.classes, 10, -1)
 
     a_dim = len(a_xs[0])
     v_dim = len(v_xs[0])
     name_statistics = ''
-
+    v_compactness = inputs_compactness(v_xs_train, v_ys_train)
+    print('Visual inputs compactness', v_compactness)
+    a_compactness = inputs_compactness(a_xs_train, a_ys_train)
+    print('Audio inputs compactness', a_compactness)
     clean_statistics_folders()
 
-    for i in range(0, 10):
+    kmeans = KMeans(n_clusters=10).fit(v_xs_train)
+    predicted = kmeans.predict(v_xs_test)
+    print('Accuracy K-Means: {}'.format(accuracy_score(list(v_ys_test), list(predicted))))
 
+    clustering = AgglomerativeClustering(n_clusters=10).fit(v_xs_test)
+    predicted = list(clustering.labels_)
+    print('Accuracy AgglomerativeCls: {}'.format(accuracy_score(list(v_ys_test), list(predicted))))
+
+    clustering = AffinityPropagation().fit(v_xs_test)
+    predicted = list(clustering.labels_)
+    print('Accuracy AffinityProp: {}'.format(accuracy_score(list(v_ys_test), list(predicted))))
+
+    for i in range(0, 40):
         # print('shape audio input test', np.shape(a_xs_test))
         # print('shape audio input train', np.shape(a_xs_train))
         # print('shape visual input test', np.shape(v_xs_test))
         # print('shape visual input train', np.shape(v_xs_train))
 
         random.seed(a=None, version=2)
-        learning_rate = round(random.uniform(0.01, 0.3), 2)
-        sigma = random.randrange(1, 4, 1)
+        learning_rate = round(random.uniform(0.02, 0.35), 2)
+        sigma = random.randrange(1, 5, 1)
         print('\n ***** TEST N°={} ***** \n'.format(i + 1))
         som_a = SOM(8, 8, a_dim, alpha=learning_rate, sigma=sigma, n_iterations=1200, batch_size=1)
         # type_file = 'visual_' + str(i + 1)
@@ -45,14 +60,16 @@ if __name__ == '__main__':
         som_v = SOM(8, 8, v_dim, alpha=learning_rate, sigma=sigma, n_iterations=1200, batch_size=1, data=type_file)
 
         som_a.train(a_xs_train, input_classes=a_ys_train, test_vects=a_xs_test, test_classes=a_ys_test, save_every=100)
-        print('Trained SOM Audio')
+        # print('Trained SOM Audio')
         som_v.train(v_xs_train, input_classes=v_ys_train, test_vects=v_xs_test, test_classes=v_ys_test, save_every=100)
-        print('Trained SOM Visual')
+        # print('Trained SOM Visual')
 
         # som_v.print_som_evaluation(v_xs_test, v_ys_test)
         # som_v.neuron_collapse_classwise(v_xs_test, v_ys_test)
-        print_charts(som_v, v_xs_test, v_ys_test, Constants.label_classes, 'visual', "Visual SOM")
-        print_charts(som_a, a_xs_test, a_ys_test, Constants.label_classes, 'Audio', "Audio SOM")
+        print_charts(som_v, v_xs_test, v_ys_test, Constants.label_classes, 'visual', "Visual SOM", 'test_data')
+        print_charts(som_a, a_xs_test, a_ys_test, Constants.label_classes, 'Audio', "Audio SOM", 'test_data')
+        print_charts(som_v, v_xs_train, v_ys_train, Constants.label_classes, 'visual', "Visual SOM", 'training_data')
+        print_charts(som_a, a_xs_train, a_ys_train, Constants.label_classes, 'Audio', "Audio SOM", 'training_data')
 
         v_compact, v_compact_var, v_confus = som_v.compute_compactness_confusion(v_xs_test, v_ys_test)
         a_compact, a_compact_var, a_confus = som_a.compute_compactness_confusion(a_xs_test, a_ys_test)
@@ -63,8 +80,12 @@ if __name__ == '__main__':
         a_mean_compactness = np.mean(a_compact)
         a_mean_variance = np.mean(a_compact_var)
 
-        # df_stats_input = get_min_max_mean_input_feature(som_v._random_initial_weights)
-        # print(df_stats_input)
+        df_stats_weights = get_min_max_mean_input_feature(som_v._random_initial_weights)
+        print('Random Initial SOM Weights:\n', df_stats_weights.head(n=10))
+
+        df_stats_input = get_min_max_mean_input_feature(v_xs_train)
+        print('\nInput Statistics:\n', df_stats_input.head(n=10))
+
         hebbian_model = HebbianModel(som_a, som_v, a_dim, v_dim, n_presentations=10)
         hebbian_model.train(a_xs_train, v_xs_train)
 
@@ -74,8 +95,7 @@ if __name__ == '__main__':
                                                prediction_alg='regular')
 
         stats.append([som_v._n, som_v._m, learning_rate, sigma, accuracy_train, accuracy_test, v_mean_compactness,
-                      v_mean_variance, a_mean_compactness, a_mean_variance, v_compact, v_compact_var,
-                      v_confus, a_compact, a_compact_var, a_confus])
+                      v_mean_variance, a_mean_compactness, a_mean_variance, v_confus, a_confus])
 
         print("Accuracy Training set", accuracy_train)
         print("Accuracy Test set", accuracy_test)

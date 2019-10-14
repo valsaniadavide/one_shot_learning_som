@@ -114,8 +114,11 @@ class SOM(object):
 
             # Randomly initialized weightage vectors for all neurons,
             # stored together as a matrix Variable of size [m*n, dim]
-            self._weightage_vects = tf.Variable(tf.random_normal(
-                [m * n, dim], mean=0, stddev=1))
+            # self._weightage_vects = tf.Variable(tf.random_normal(
+            #     [m * n, dim], mean=0, stddev=1))
+
+            self._weightage_vects = tf.Variable(tf.random_uniform(
+                [m * n, dim], minval=-1, maxval=1))
 
             # Matrix of size [m*n, 2] for SOM grid locations
             # of neurons
@@ -231,18 +234,19 @@ class SOM(object):
             self._training_op = tf.assign(self._weightage_vects,
                                           new_weightages_op)
 
-            ##INITIALIZE SESSION
+            # INITIALIZE SESSION
             # uncomment this to run on cpu
             config = tf.ConfigProto(
                 device_count={'GPU': 0}
             )
             self._sess = tf.Session(config=config)
+            # self._sess = tf.Session()
 
-            ##INITIALIZE VARIABLES
+            # INITIALIZE VARIABLES
             init_op = tf.global_variables_initializer()
             self._sess.run(init_op)
 
-            self._random_initial_weights = self._weightage_vects.eval(session=self._sess)
+            self._random_initial_weights = np.copy(self._weightage_vects.eval(session=self._sess))
 
     def _get_weight_delta(self, learning_rate_matrix):
         """

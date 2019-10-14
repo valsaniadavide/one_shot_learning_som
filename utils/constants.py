@@ -32,9 +32,7 @@ class Constants():
     classes = list(range(0, 10))
 
     columns_stat = ['n', 'm', 'alpha', 'sigma', 'accuracy_train', 'accuracy_test', 'v_mean_compactness',
-                    'v_mean_variance',
-                    'a_mean_compactness', 'a_mean_variance', 'v_compact', 'v_compact_var', 'v_confus',
-                    'a_compact', 'a_compact_var', 'a_confus']
+                    'v_mean_variance', 'a_mean_compactness', 'a_mean_variance', 'v_confus', 'a_confus']
 
     label_classes = ['table', 'mug', 'tree', 'dog', 'house', 'book', 'guitar', 'fish', 'cat', 'bird']
 

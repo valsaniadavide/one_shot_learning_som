@@ -1,8 +1,13 @@
+import os, shutil
 import random
 
+import pandas as pd
+import numpy as np
 from models.som.SOMTest import show_som, show_confusion
 from utils.utils import from_csv_with_filenames, from_csv_visual_10classes
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, MaxAbsScaler, Normalizer
+from utils.constants import Constants
+from sklearn.metrics.pairwise import euclidean_distances
 
 
 def get_class_input_indexes(class_list, classes):
@@ -41,7 +46,7 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
     class_indexes = get_class_input_indexes(ys, classes)
     for i in range(0, n_class_examples_train):
         for class_elements in class_indexes:
-            random.seed(30)
+            random.seed(20)
             index_random_element = random.choice(class_elements)
             class_elements.remove(index_random_element)
             new_xs_train.append(xs[index_random_element])
@@ -63,7 +68,38 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
     return new_xs_train, new_ys_train, new_xs_test, new_ys_test
 
 
+def get_examples_of_class(xs, ys, classes, class_to_extract):
+    """
+    Function that extract all examples of a class from a dataset in input
+    :param xs: dataset in input
+    :param ys: corresponding labels to dataset
+    :param classes: numeric list of classes
+    :param class_to_extract: number of the class to extract
+    :return: list of examples extracted (with labels associated) and others remaining inputs
+    """
+    xs_others = []
+    ys_others = []
+    classes_indexes = get_class_input_indexes(ys, classes)
+    ext_xs = []
+    ext_ys = []
+    for index_class_element in classes_indexes[class_to_extract]:
+        ext_xs.append(xs[index_class_element])
+        ext_ys.append(ys[index_class_element])
+    classes_indexes.pop(class_to_extract)
+    for class_elements in classes_indexes:
+        for index_element in class_elements:
+            xs_others.append(xs[index_element])
+            ys_others.append(ys[index_element])
+    return ext_xs, ext_ys, xs_others, ys_others
+
+
 def import_data(visual_data_path, audio_data_path):
+    """
+    Function that loads data from paths
+    :param visual_data_path: visual data paths
+    :param audio_data_path: audio data paths
+    :return: visual and audio data loaded from path
+    """
     a_xs, a_ys, filenames_audio = from_csv_with_filenames(audio_data_path)
     v_xs, v_ys, filenames_visual = from_csv_visual_10classes(visual_data_path)
     a_ys = [int(y) - 1000 for y in a_ys]
@@ -74,7 +110,64 @@ def import_data(visual_data_path, audio_data_path):
     return v_xs, v_ys, a_xs, a_ys, filenames_visual, filenames_audio
 
 
-def print_charts(som, xs, ys, label_classes, suffix, title):
+def print_charts(som, xs, ys, label_classes, suffix, title, subpath='test_data'):
     show_som(som, xs, ys, label_classes,
-             title, dark=False, suffix=suffix)
-    show_confusion(som, xs, ys, title=title, suffix=suffix)
+             title, dark=False, suffix=suffix, subpath=subpath)
+    show_confusion(som, xs, ys, title=title, suffix=suffix, subpath=subpath)
+
+
+def clean_folders(path):
+    for the_file in os.listdir(path):
+        file_path = os.path.join(path, the_file)
+        try:
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print(e)
+
+
+def get_min_max_mean_input_feature(xs):
+    df = pd.DataFrame(xs)
+    data_stat = pd.DataFrame()
+    data_stat['min_value'] = df.min(axis=0)
+    data_stat['max_value'] = df.max(axis=0)
+    data_stat['mean_value'] = df.mean(axis=0)
+    data_stat['variance_value'] = df.var(axis=0)
+    return data_stat
+
+
+def compute_inputs_distances(xs):
+    """
+    Function that compute the distances between inputs passed as param
+    :param xs: list of input
+    :return: distances between couples of inputs
+    """
+    elements = list.copy(xs)
+    number_of_elements = len(elements)
+    compactness = 0
+    for index in range(0, len(xs)):
+        element = xs[index]
+        elements.remove(element)
+        if len(elements) > 0:
+            element_distances = np.sum(euclidean_distances(np.array(element).reshape(1, -1), elements))
+            compactness += element_distances
+    return compactness / number_of_elements
+
+
+def inputs_compactness(xs, ys):
+    """
+    Function that compute compactness for each class
+    :param xs: list of inputs
+    :param ys: list of labels
+    :return: list of compactness values for each class
+    """
+    classes = Constants.classes
+    intra_classes_distances = []
+    inter_classes_distances = []
+    for _class in classes:
+        ext_xs, ext_ys, others_xs, others_ys = get_examples_of_class(xs, ys, classes, _class)
+        intra_classes_distances.append(compute_inputs_distances(ext_xs))
+        inter_classes_distances.append(compute_inputs_distances(others_xs))
+    return np.divide(intra_classes_distances, inter_classes_distances)
