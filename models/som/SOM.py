@@ -48,7 +48,7 @@ class SOM(object):
     def __init__(self, m, n, dim, n_iterations=50, alpha=None, sigma=None,
                  tau=0.5, threshold=0.6, batch_size=500, num_classes=100,
                  checkpoint_loc=None, data='audio', sigma_decay='time',
-                 lr_decay='time'):
+                 lr_decay='time', weights=None):
         """
         Initializes all necessary components of the TensorFlow
         Graph.
@@ -114,11 +114,13 @@ class SOM(object):
 
             # Randomly initialized weightage vectors for all neurons,
             # stored together as a matrix Variable of size [m*n, dim]
-            # self._weightage_vects = tf.Variable(tf.random_normal(
-            #     [m * n, dim], mean=0, stddev=1))
+            self._weightage_vects = tf.Variable(tf.random_normal(
+                [m * n, dim], mean=0, stddev=1))
 
-            self._weightage_vects = tf.Variable(tf.random_uniform(
-                [m * n, dim], minval=-1, maxval=1))
+            if weights is not None:
+                self._weightage_vects = tf.Variable(tf.cast(weights, tf.float32))
+            # self._weightage_vects = tf.Variable(tf.random_uniform(
+            #     [m * n, dim], minval=-1, maxval=1))
 
             # Matrix of size [m*n, 2] for SOM grid locations
             # of neurons
@@ -303,7 +305,7 @@ class SOM(object):
             old_test_comp = [0]
             for iter_no in range(self._n_iterations):
                 if iter_no % 5 == 0:
-                    # print('Iteration {}'.format(iter_no))
+                    print('Iteration {}'.format(iter_no))
                     # delta sanity check
                     delta = self._sess.run(self.weightage_delta, feed_dict={self._vect_input: input_vects[0:1],
                                                                             self._iter_input: iter_no})
@@ -714,14 +716,14 @@ class SOM(object):
         for i, y in enumerate(ys):
             class_belonging_dict[y].append(i)
         intra_class_distance = [0 for y in list(set(ys))]
-        for y in set(ys):
+        for i, y in enumerate(set(ys)):
             for index, j in enumerate(class_belonging_dict[y]):
                 x1 = xs[j]
                 for k in class_belonging_dict[y][index + 1:]:
-                    x2 = xs[k]
+                    # x2 = xs[k]
                     pos_x1 = bmu_positions[j]
                     pos_x2 = bmu_positions[k]
-                    intra_class_distance[y] += np.linalg.norm(pos_x1 - pos_x2)
+                    intra_class_distance[i] += np.linalg.norm(pos_x1 - pos_x2)
         if train == True:
             inter_class_distance = self.train_inter_class_distance
         else:

@@ -3,6 +3,7 @@ import numpy as np
 import os
 import sys
 import matplotlib
+
 matplotlib.use('Agg')
 matplotlib.rcParams.update({'font.size': 8})
 import matplotlib.pyplot as plt
@@ -10,6 +11,7 @@ from RepresentationExperiments.distance_experiments import get_prototypes
 from sklearn.preprocessing import MinMaxScaler
 from utils.constants import Constants
 from utils.utils import softmax, get_plot_filename
+
 
 class HebbianModel(object):
 
@@ -37,22 +39,23 @@ class HebbianModel(object):
 
         with self._graph.as_default():
             self.weights = tf.Variable(
-                             tf.random_normal([self.num_neurons, self.num_neurons],
-                             mean=1/self.num_neurons,
-                             stddev=1/np.sqrt(1000*self.num_neurons))
-                           )
+                tf.random_normal([self.num_neurons, self.num_neurons],
+                                 mean=1 / self.num_neurons,
+                                 stddev=1 / np.sqrt(1000 * self.num_neurons))
+            )
 
             self.activation_a = tf.placeholder(dtype=tf.float32, shape=[self.num_neurons])
             self.activation_v = tf.placeholder(dtype=tf.float32, shape=[self.num_neurons])
             self.assigned_weights = tf.placeholder(dtype=tf.float32, shape=[self.num_neurons, self.num_neurons])
 
-            self.delta = 1 - tf.exp(-self.learning_rate * tf.matmul(tf.reshape(self.activation_a, (-1, 1)),                            tf.reshape(self.activation_v, (1, -1))))
+            self.delta = 1 - tf.exp(-self.learning_rate * tf.matmul(tf.reshape(self.activation_a, (-1, 1)),
+                                                                    tf.reshape(self.activation_v, (1, -1))))
             new_weights = tf.add(self.weights, self.delta)
             self.training = tf.assign(self.weights, new_weights)
 
             self.assign_op = tf.assign(self.weights, self.assigned_weights)
 
-            self._sess  = tf.Session()
+            self._sess = tf.Session()
             init_op = tf.global_variables_initializer()
             self._sess.run(init_op)
 
@@ -70,10 +73,10 @@ class HebbianModel(object):
         from each class to be trained on.
         '''
         assert len(input_a) == len(input_v) == self.n_presentations * self.n_classes, \
-               'Number of training examples and number of desired presentations \
-                is incoherent. len(input_a) = {}; len(input_v) = {}; \
-                n_presentations = {}, n_classes = {}'.format(len(input_a), len(input_v),
-                                                      self.n_presentations, self.n_classes)
+            'Number of training examples and number of desired presentations \
+             is incoherent. len(input_a) = {}; len(input_v) = {}; \
+             n_presentations = {}, n_classes = {}'.format(len(input_a), len(input_v),
+                                                             self.n_presentations, self.n_classes)
         with self._sess:
             # present images to model
             for i in range(len(input_a)):
@@ -103,7 +106,7 @@ class HebbianModel(object):
                     os.makedirs(self.checkpoint_dir)
                 saver.save(self._sess,
                            os.path.join(self.checkpoint_dir,
-                                       'model.ckpt'),
+                                        'model.ckpt'),
                            1)
 
             # convert weights to numpy arrays from tf tensors
@@ -113,11 +116,11 @@ class HebbianModel(object):
         ckpt = tf.train.get_checkpoint_state(self.checkpoint_dir)
         if ckpt and ckpt.model_checkpoint_path:
             with self._sess:
-              saver = tf.train.Saver()
-              saver.restore(self._sess, ckpt.model_checkpoint_path)
-              self.weights = self._sess.run(self.weights)
-              print('RESTORED HEBBIAN MODEL')
-              return True
+                saver = tf.train.Saver()
+                saver.restore(self._sess, ckpt.model_checkpoint_path)
+                self.weights = self._sess.run(self.weights)
+                print('RESTORED HEBBIAN MODEL')
+                return True
         else:
             print('NO CHECKPOINT FOUND')
             return False
@@ -203,22 +206,22 @@ class HebbianModel(object):
         for yi, yj in zip(y_pred, y_source):
             if yi == yj:
                 correct += 1
-        print('correct: {}' .format(correct))
+        print('correct: {}'.format(correct))
         print(y_source)
         print(y_pred)
-        return correct/len(y_pred)
+        return correct / len(y_pred)
 
     def make_prediction(self, x, y, source_som, target_som, X_target, y_target, source):
         source_bmu, target_bmu = self.get_bmus_propagate(x, source_som=source)
         target_activations = []
         target_bmu_weights = np.reshape(target_som._weightages[target_bmu],
-                                       (1, -1))
+                                        (1, -1))
         for yi_target, xi_target in zip(y_target, X_target):
             xi_target = np.reshape(xi_target, (-1, 1))
             activation = np.dot(target_bmu_weights, xi_target)
             # alternative way to compute the activation. should be the same performance wise. (untested)
-            #activation = np.absolute(xi_target - target_bmu_weights)
-            #activation = np.exp(-(np.sum(activation)/len(activation))/self.tau)
+            # activation = np.absolute(xi_target - target_bmu_weights)
+            # activation = np.exp(-(np.sum(activation)/len(activation))/self.tau)
             # save a correct example for later visualization, if necessary
             if yi_target == y:
                 xi_true = xi_target
@@ -288,11 +291,10 @@ class HebbianModel(object):
         sorted_activations = list(map(activations.__getitem__, sorted_indexes))
         sorted_positions = list(map(pos_activations.__getitem__, sorted_indexes))
         sorted_tuple = [(act, index) for act, index in zip(sorted_activations, sorted_indexes)
-                          if bmu_class_dict[index] != []]
+                        if bmu_class_dict[index] != []]
         sorted_activations = list(zip(*sorted_tuple))[0]
         sorted_indexes = list(zip(*sorted_tuple))[1]
-        return sorted_activations[:k+1], sorted_indexes[:k+1]
-
+        return sorted_activations[:k + 1], sorted_indexes[:k + 1]
 
     def make_prediction_knn(self, x, y, k, source_som, target_som, source, train=True):
         if train:
@@ -307,8 +309,8 @@ class HebbianModel(object):
         closest_activations, closest_indexes = self.get_bmu_k_closest(target_som, target_activation,
                                                                       pos_activations, k, train=train)
         # perform a simple majority vote
-        #class_count = [0 for i in set([c[0] for c in bmu_class_dict.values() if c != []])]
-        #for i in range(len(closest_indexes)):
+        # class_count = [0 for i in set([c[0] for c in bmu_class_dict.values() if c != []])]
+        # for i in range(len(closest_indexes)):
         #    bmu_class_list = bmu_class_dict[closest_indexes[i]]
         #    if bmu_class_list != []:
         #        class_count[bmu_class_list[0]] += 1
@@ -341,7 +343,7 @@ class HebbianModel(object):
             # minimum activation is mapped to 0 and maximum to 1
             min_ = min(target_activation)
             max_ = max(target_activation)
-            vote_weights = (target_activation - min_) / float(max_- min_)
+            vote_weights = (target_activation - min_) / float(max_ - min_)
         hebbian_bmu_index = np.argmax(target_activation)
         pos_activations = list(target_som._neuron_locations(target_som._m, target_som._n))
         closest_activations, closest_indexes = self.get_bmu_k_closest(target_som, target_activation,
@@ -349,11 +351,11 @@ class HebbianModel(object):
         # perform a weighted majority vote
         class_count = [0 for i in set([c[0] for c in bmu_class_dict.values() if c != []])]
         for i in range(len(closest_indexes)):
-            #print(closest_indexes[i])
+            # print(closest_indexes[i])
             bmu_class_list = bmu_class_dict[closest_indexes[i]]
             if bmu_class_list != []:
                 class_count[bmu_class_list[0]] += 1 * vote_weights[closest_indexes[i]]
-        #print(class_count)
+        # print(class_count)
 
         class_count = [0 for i in range(source_som.num_classes)]
         for i in range(len(closest_indexes)):
@@ -385,6 +387,7 @@ class HebbianModel(object):
         idx = x < self.threshold
         x[idx] = 0
         return x
+
 
 # some test cases. do not use as an entry point for experiments!
 if __name__ == '__main__':
