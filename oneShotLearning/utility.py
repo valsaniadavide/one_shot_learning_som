@@ -105,8 +105,8 @@ def import_data(visual_data_path, audio_data_path):
     a_ys = [int(y) - 1000 for y in a_ys]
     v_ys = [int(y) - 1000 for y in v_ys]
     # scale data to 0-1 range
-    a_xs = StandardScaler().fit_transform(a_xs)
-    v_xs = StandardScaler().fit_transform(v_xs)
+    # a_xs = StandardScaler().fit_transform(a_xs)
+    # v_xs = StandardScaler().fit_transform(v_xs)
     return v_xs, v_ys, a_xs, a_ys, filenames_visual, filenames_audio
 
 

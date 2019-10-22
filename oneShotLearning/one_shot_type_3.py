@@ -17,6 +17,8 @@ if __name__ == '__main__':
     xs, ys, a_xs, a_ys, filenames_visual, filenames_audio = import_data(Constants.visual_data_path,
                                                                         Constants.audio_data_path)
     stats = []
+    xs = StandardScaler().fit_transform(xs)
+    a_xs = StandardScaler().fit_transform(a_xs)
     v_xs, v_ys, _ = from_npy_visual_data(os.path.join(Constants.DATA2_FOLDER, 'visual_10classes_train_as.npy'))
     v_xs = StandardScaler().fit_transform(v_xs)
 
@@ -43,24 +45,26 @@ if __name__ == '__main__':
         # learning_rate = round(random.uniform(0.02, 0.35), 2)
         # sigma = random.randrange(1, 5, 1)
         print('\n ***** TEST N°={} ***** \n'.format(i + 1))
-        # som_a = SOM(20, 30, a_dim, alpha=0.3, sigma=15, n_iterations=100, batch_size=1)
+        som_a = SOM(20, 20, a_dim, alpha=0.3, sigma=15, n_iterations=100, batch_size=1)
         # type_file = 'visual_' + str(i + 1)
         type_file = 'visual'
-        som_v = SOM(30, 30, v_dim, alpha=0.3, sigma=15, n_iterations=500, batch_size=1, data=type_file)
+        som_v = SOM(20, 20, v_dim, alpha=0.3, sigma=15, n_iterations=100, batch_size=1, data=type_file)
 
-        # som_a.train(others_a_xs, input_classes=others_a_ys, test_vects=others_a_xs, test_classes=others_a_ys, save_every=100)
+        som_a.train(others_a_xs, input_classes=others_a_ys, test_vects=others_a_xs, test_classes=others_a_ys,
+                    save_every=100)
         # print('Trained SOM Audio')
-        som_v.train(others_v_xs, input_classes=others_v_ys,test_vects=others_v_xs, test_classes=others_v_ys, save_every=100)
+        som_v.train(others_v_xs, input_classes=others_v_ys, test_vects=others_v_xs, test_classes=others_v_ys,
+                    save_every=100)
         # print('Trained SOM Visual')
 
         # som_v.print_som_evaluation(v_xs_test, v_ys_test)
         # som_v.neuron_collapse_classwise(v_xs_test, v_ys_test)
         # print_charts(som_v, v_xs_test, v_ys_test, Constants.label_classes, 'visual', "Visual SOM", 'test_data')
         # print_charts(som_a, a_xs_test, a_ys_test, Constants.label_classes, 'Audio', "Audio SOM", 'test_data')
-        print_charts(som_v, others_v_xs, others_v_ys, Constants.label_classes, 'visual', "Visual SOM", 'training_data')
+        # print_charts(som_v, others_v_xs, others_v_ys, Constants.label_classes, 'visual', "Visual SOM", 'training_data')
         # print_charts(som_a, others_a_xs, others_a_ys, Constants.label_classes, 'Audio', "Audio SOM", 'training_data')
 
-        v_compact, v_compact_var, v_confus = som_v.compute_compactness_confusion(others_v_xs, others_v_ys)
+        # v_compact, v_compact_var, v_confus = som_v.compute_compactness_confusion(others_v_xs, others_v_ys)
         # a_compact, a_compact_var, a_confus = som_a.compute_compactness_confusion(others_a_xs, others_a_ys)
         # som_v.plot_som(v_xs_test, v_ys_test, plot_name='som-vis.png')
         # som_a.plot_som(a_xs_test, a_ys_test, plot_name='som-aud.png')
@@ -75,8 +79,8 @@ if __name__ == '__main__':
         # df_stats_input = get_min_max_mean_input_feature(others_v_xs)
         # print('\nInput Statistics:\n', df_stats_input.head(n=10))
         #
-        # hebbian_model = HebbianModel(som_a, som_v, a_dim, v_dim, n_presentations=10)
-        # hebbian_model.train(a_xs_train, v_xs_train)
+        hebbian_model = HebbianModel(som_a, som_v, a_dim, v_dim, n_presentations=10)
+        hebbian_model.train(a_xs_train, v_xs_train)
         #
         # accuracy_train = hebbian_model.evaluate(others_a_xs, others_v_xs, others_a_ys, others_v_ys, source='v',
         #                                         prediction_alg='regular')

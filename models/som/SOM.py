@@ -264,6 +264,11 @@ class SOM(object):
         squared_distances = tf.reduce_sum((self._location_vects - tf.expand_dims(bmu_loc, 1)) ** 2, 2)
         return squared_distances
 
+    def set_weights(self, weights):
+        self._weightage_vects = weights
+        self._weightages = weights
+        self._locations = np.array(list(self._neuron_locations(self._m, self._n)))
+
     def _get_bmu(self, vects):
         """
         Returns the BMU for each example in vect. The return value's dimensionality
