@@ -470,20 +470,20 @@ class SOM(object):
             to_return.append(self._locations[min_index])
         return to_return
 
-    @profile
+    # @profile
     def get_BMU(self, input_vect):
         min_index = min([i for i in range(len(self._weightages))],
                         key=lambda x: np.linalg.norm(input_vect -
                                                      self._weightages[x]))
         return [min_index, self._locations[min_index]]
 
-    @profile
+    # @profile
     def get_BMU_mine(self, input_vect):
         diff = np.linalg.norm(self._weightages - input_vect, axis=1)
         min_index = np.argmin(diff)
         return [min_index, self._locations[min_index]]
 
-    @profile
+    # @profile
     def map_vects_parallel(self, input_vects):
         input_vects = input_vects[:, np.newaxis, :]
         diff_tensor = self._weightages - input_vects
@@ -494,7 +494,7 @@ class SOM(object):
             result.append(self._locations[index])
         return result
 
-    @profile
+    # @profile
     def map_vects_memory_aware(self, input_vects):
         result = []
         for x in input_vects:
@@ -502,7 +502,7 @@ class SOM(object):
             result.append(bmu_loc)
         return result
 
-    def map_vects_confusion(self, input_vects, ys):
+    # def map_vects_confusion(self, input_vects, ys):
         result = []
         collapse_dict = {neuron_loc: [] for neuron_loc in self.neuron_loc_list}
         for index, x in enumerate(input_vects):
@@ -520,7 +520,7 @@ class SOM(object):
         bmu_confusion /= self.num_classes
         return result, bmu_confusion
 
-    def map_vects_get_confusion_stats(self, input_vects, ys):
+    # def map_vects_get_confusion_stats(self, input_vects, ys):
         result = []
         collapse_dict = {neuron_loc: [] for neuron_loc in self.neuron_loc_list}
         worst_offenders = [0 for i in range(1)]
