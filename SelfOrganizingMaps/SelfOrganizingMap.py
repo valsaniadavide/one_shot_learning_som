@@ -44,7 +44,7 @@ class SelfOrganizingMap(object):
         """
         self._miniSOM = MiniSom(n, m, dim, sigma=sigma,
                                 learning_rate=learning_rate, neighborhood_function=neighborhood_function)
-        self._som = SOM(m, n, dim, alpha=learning_rate, sigma=sigma, n_iterations=n_iterations, batch_size=1, data=data)
+        self._som = SOM(n, m, dim, alpha=learning_rate, sigma=sigma, n_iterations=n_iterations, batch_size=1, data=data)
         self._n = n
         self._m = m
         self._dim = dim
@@ -52,7 +52,7 @@ class SelfOrganizingMap(object):
         self._learning_rate = learning_rate
         self._sigma = sigma
         self._neighborhood_function = neighborhood_function
-        matplotlib.rcParams.update({'font.size': 13})
+        # matplotlib.rcParams.update({'font.size': 16})
 
     def train(self, xs, verbose=True, pca_initialization_weights=True):
         """
@@ -80,9 +80,19 @@ class SelfOrganizingMap(object):
         :param type_dataset: label 'train' or 'test' used to pathfile
         """
         plt.figure(figsize=FIG_SIZE)
-        plt.xticks(np.arange(0, self._n, step=1))
-        plt.yticks(np.arange(0, self._m, step=1))
-        plt.title('Input\'s BMUs activations')
+        # plt.xticks(np.arange(0, self._m, step=1))
+        # plt.yticks(np.arange(0, self._n, step=1))
+        #plt.axis('off')
+        plt.title('Input\'s BMUs activations', fontsize=20)
+        plt.xlim([-1, self._m])
+        plt.ylim([-1, self._n])
+        plt.gca().set_xticks(np.arange(-1, self._m, 1))
+        plt.gca().set_yticks(np.arange(-1, self._n, 1))
+        plt.gca().set_xticklabels([])
+        plt.gca().set_yticklabels([])
+        plt.gca().tick_params(axis=u'both', which=u'both', length=0)
+        # plt.gca().grid(alpha=0.3, linestyle=':', color='black')
+
         classes = Constants.label_classes
         colors = sb.color_palette('bright', n_colors=len(classes))
         labels_map = self._miniSOM.labels_map(xs, ys)
@@ -90,10 +100,10 @@ class SelfOrganizingMap(object):
         for bmu, value in labels_map.items():
             for class_label, count in value.items():
                 size = 60 / 2 + np.log(1 + count ** 2) * 60
-                plt.scatter(bmu[0] + .5, bmu[1] + .5, s=size, color=colors[class_label], alpha=0.8,
+                plt.scatter(bmu[1] + .5, bmu[0] + .5, s=size, color=colors[class_label], alpha=0.8,
                             edgecolors=colors[class_label])
 
-        plt.axis([0, self._miniSOM.get_weights().shape[0], 0, self._miniSOM.get_weights().shape[1]])
+        plt.axis([0, self._miniSOM.get_weights().shape[1], 0, self._miniSOM.get_weights().shape[0]])
         img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'som_mapping_{}.png'.format(type_dataset))
         patch_list = []
         for i in range(len(classes)):
@@ -112,11 +122,18 @@ class SelfOrganizingMap(object):
         """
         umatrix = self._miniSOM.distance_map()
         plt.figure(figsize=FIG_SIZE)
+        plt.xlim([-1, self._m])
+        plt.ylim([-1, self._n])
+        plt.gca().set_xticks(np.arange(-1, self._m, 1))
+        plt.gca().set_yticks(np.arange(-1, self._n, 1))
+        plt.gca().set_xticklabels([])
+        plt.gca().set_yticklabels([])
+        plt.gca().tick_params(axis=u'both', which=u'both', length=0)
         img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'u-matrix.png')
         plt.imshow(umatrix, origin='lower', interpolation='spline36')
-        plt.xticks(np.arange(0, self._n, step=1))
-        plt.yticks(np.arange(0, self._m, step=1))
-        plt.title('Unified Distance Matrix')
+        # plt.xticks(np.arange(0, self._m, step=1))
+        # plt.yticks(np.arange(0, self._n, step=1))
+        plt.title('Unified Distance Matrix', fontsize=20)
         plt.colorbar()
         plt.savefig(img_path)
         plt.show(block=True)
@@ -140,58 +157,72 @@ class SelfOrganizingMap(object):
         return self._som.get_activations(xs)
 
     def plot_activation_frequencies(self, xs):
+        """
+        Function that plot a chart of frequencies activation of the BMUs
+        :param xs: data used to compute the activation frequencies
+        :return:
+        """
         plt.figure(figsize=FIG_SIZE)
-        plt.title('BMUs Activation Frequencies')
+        plt.title('BMUs Activation Frequencies', fontsize=20)
+        plt.xlim([-1, self._m])
+        plt.ylim([-1, self._n])
+        plt.gca().set_xticks(np.arange(-1, self._m, 1))
+        plt.gca().set_yticks(np.arange(-1, self._n, 1))
+        plt.gca().set_xticklabels([])
+        plt.gca().set_yticklabels([])
+        plt.gca().tick_params(axis=u'both', which=u'both', length=0)
         frequencies = self._miniSOM.activation_response(xs)
-        plt.pcolor(frequencies, cmap='Blues')
-        plt.xticks(np.arange(0, self._n, step=1))
-        plt.yticks(np.arange(0, self._m, step=1))
+        plt.pcolor(frequencies, cmap='Greens')
+        # plt.xticks(np.arange(0, self._m, step=1))
+        # plt.yticks(np.arange(0, self._n, step=1))
         plt.colorbar()
+        img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'activation-frequencies.png')
+        plt.savefig(img_path)
         plt.show()
 
     def neuron_locations(self):
+        """
+        Function that get the location of the neuron on the map
+
+        :return: position of the neurons as list of couple
+        """
         positions = []
-        for i in range(self._m):
-            for j in range(self._n):
+        for i in range(self._n):
+            for j in range(self._m):
                 positions.append((i, j))
         return positions
 
-    def _draw_pie(self, dists, xpos, ypos, size=None, ax=None):
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(10, 8))
-        # for incremental pie slices
-        cumsum = np.cumsum(dists)
-        cumsum = cumsum / cumsum[-1]
-        pie = [0] + cumsum.tolist()
-
-        for r1, r2 in zip(pie[:-1], pie[1:]):
-            angles = np.linspace(2 * np.pi * r1, 2 * np.pi * r2)
-            x = [0] + np.cos(angles).tolist()
-            y = [0] + np.sin(angles).tolist()
-
-            xy = np.column_stack([x, y])
-            if size is None:
-                ax.scatter([xpos], [ypos], marker=xy)
-            else:
-                ax.scatter([xpos], [ypos], marker=xy, s=size)
-
-        return ax
-
     def plot_som_class_pies(self, xs, ys, type_dataset='train'):
+        """
+        Function tha plot the SOM so that each neuron is a pie chart
+        where each slice is a class mapped on that neuron
+
+        :param xs: data list
+        :param ys: label associated to the data list
+        :param type_dataset: 'train' or 'test' type of data
+        """
         labels_map = self._miniSOM.labels_map(xs, ys)
         label_names = np.unique(ys)
 
-        plt.figure(figsize=(10, 8))
-        plt.title('Input\'s BMUs activations')
-        the_grid = GridSpec(self._n + 1, self._m + 1)
+        plt.figure(figsize=(10, 8), constrained_layout=False)
+        plt.xlim([-1, self._m])
+        plt.ylim([-1, self._n])
+        plt.gca().set_xticks(np.arange(-1, self._m, 1))
+        plt.gca().set_yticks(np.arange(-1, self._n, 1))
+        plt.gca().set_xticklabels([])
+        plt.gca().set_yticklabels([])
+        plt.gca().tick_params(axis=u'both', which=u'both', length=0)
+        plt.gca().grid(alpha=0.2, linestyle=':', color='black')
+        the_grid = GridSpec(self._n + 1, self._m)
         for position in labels_map.keys():
             label_fracs = [labels_map[position][l] for l in label_names]
-            plt.subplot(the_grid[position[0], position[1]], aspect=1)
+            plt.subplot(the_grid[self._n - 1 - position[0], position[1]])
             patches, texts = plt.pie(label_fracs)
         plt.subplot(the_grid[self._n, :])
         plt.axis('off')
-        plt.legend(patches, Constants.label_classes, loc='upper center', bbox_to_anchor=(0.5, 0), ncol=5)
-        # plt.savefig('resulting_images/som_iris_pies.png')
+        plt.legend(patches, Constants.label_classes, loc='upper center', bbox_to_anchor=(0.5, 0), ncol=5, fontsize=14)
+        img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'som_mapping_pies.png')
+        plt.savefig(img_path)
         plt.show()
 
     def plot_quantization_error(self):
@@ -200,4 +231,23 @@ class SelfOrganizingMap(object):
         plt.plot(iterations, error)
         plt.ylabel('quantization error')
         plt.xlabel('iteration index')
+        plt.show()
+
+    def plot_confusion_map(self, xs, ys, classes):
+        labels_map = self._miniSOM.labels_map(xs, ys)
+        n_classes = len(classes)
+        confusion = [len(labels_map[neuron]) / n_classes if len(labels_map[neuron]) > 1 else 0 for neuron in
+                     self.neuron_locations()]
+        confusion = np.array(confusion).reshape(self._n, -1)
+        scaler = len(classes) / float(len(classes) - 1)
+        plt.title('SOM Confusion Map', fontsize=15)
+        plt.imshow(confusion * scaler, cmap='Oranges', origin="lower", clim=(0.0, 1.0))
+        plt.xlim([-1, self._m])
+        plt.ylim([-1, self._n])
+        plt.gca().set_xticks(np.arange(-1, self._m, 1))
+        plt.gca().set_yticks(np.arange(-1, self._n, 1))
+        plt.gca().set_xticklabels([])
+        plt.gca().set_yticklabels([])
+        plt.gca().tick_params(axis=u'both', which=u'both', length=0)
+        plt.colorbar()
         plt.show()
