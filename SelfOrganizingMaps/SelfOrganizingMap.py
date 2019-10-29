@@ -3,7 +3,7 @@ import operator
 import os
 
 from matplotlib.gridspec import GridSpec
-from minisom import MiniSom
+from SelfOrganizingMaps.miniSOM import MiniSom
 from sklearn.metrics import accuracy_score
 
 import plotly.graph_objects as go
@@ -82,7 +82,7 @@ class SelfOrganizingMap(object):
         plt.figure(figsize=FIG_SIZE)
         # plt.xticks(np.arange(0, self._m, step=1))
         # plt.yticks(np.arange(0, self._n, step=1))
-        #plt.axis('off')
+        # plt.axis('off')
         plt.title('Input\'s BMUs activations', fontsize=20)
         plt.xlim([-1, self._m])
         plt.ylim([-1, self._n])
@@ -205,14 +205,6 @@ class SelfOrganizingMap(object):
         label_names = np.unique(ys)
 
         plt.figure(figsize=(10, 8), constrained_layout=False)
-        plt.xlim([-1, self._m])
-        plt.ylim([-1, self._n])
-        plt.gca().set_xticks(np.arange(-1, self._m, 1))
-        plt.gca().set_yticks(np.arange(-1, self._n, 1))
-        plt.gca().set_xticklabels([])
-        plt.gca().set_yticklabels([])
-        plt.gca().tick_params(axis=u'both', which=u'both', length=0)
-        plt.gca().grid(alpha=0.2, linestyle=':', color='black')
         the_grid = GridSpec(self._n + 1, self._m)
         for position in labels_map.keys():
             label_fracs = [labels_map[position][l] for l in label_names]
