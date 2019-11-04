@@ -80,9 +80,6 @@ class SelfOrganizingMap(object):
         :param type_dataset: label 'train' or 'test' used to pathfile
         """
         plt.figure(figsize=FIG_SIZE)
-        # plt.xticks(np.arange(0, self._m, step=1))
-        # plt.yticks(np.arange(0, self._n, step=1))
-        # plt.axis('off')
         plt.title('Input\'s BMUs activations', fontsize=20)
         plt.xlim([-1, self._m])
         plt.ylim([-1, self._n])
@@ -91,7 +88,6 @@ class SelfOrganizingMap(object):
         plt.gca().set_xticklabels([])
         plt.gca().set_yticklabels([])
         plt.gca().tick_params(axis=u'both', which=u'both', length=0)
-        # plt.gca().grid(alpha=0.3, linestyle=':', color='black')
 
         classes = Constants.label_classes
         colors = sb.color_palette('bright', n_colors=len(classes))
@@ -130,9 +126,7 @@ class SelfOrganizingMap(object):
         plt.gca().set_yticklabels([])
         plt.gca().tick_params(axis=u'both', which=u'both', length=0)
         img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'u-matrix.png')
-        plt.imshow(umatrix, origin='lower', interpolation='spline36')
-        # plt.xticks(np.arange(0, self._m, step=1))
-        # plt.yticks(np.arange(0, self._n, step=1))
+        plt.imshow(umatrix, origin='higher', interpolation='spline36')
         plt.title('Unified Distance Matrix', fontsize=20)
         plt.colorbar()
         plt.savefig(img_path)
@@ -173,8 +167,6 @@ class SelfOrganizingMap(object):
         plt.gca().tick_params(axis=u'both', which=u'both', length=0)
         frequencies = self._miniSOM.activation_response(xs)
         plt.pcolor(frequencies, cmap='Greens')
-        # plt.xticks(np.arange(0, self._m, step=1))
-        # plt.yticks(np.arange(0, self._n, step=1))
         plt.colorbar()
         img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'activation-frequencies.png')
         plt.savefig(img_path)

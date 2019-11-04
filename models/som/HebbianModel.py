@@ -11,6 +11,7 @@ from RepresentationExperiments.distance_experiments import get_prototypes
 from sklearn.preprocessing import MinMaxScaler
 from utils.constants import Constants
 from utils.utils import softmax, get_plot_filename
+from sklearn.metrics import f1_score, recall_score, precision_score
 
 
 class HebbianModel(object):
@@ -76,7 +77,7 @@ class HebbianModel(object):
             'Number of training examples and number of desired presentations \
              is incoherent. len(input_a) = {}; len(input_v) = {}; \
              n_presentations = {}, n_classes = {}'.format(len(input_a), len(input_v),
-                                                             self.n_presentations, self.n_classes)
+                                                          self.n_presentations, self.n_classes)
         with self._sess:
             # present images to model
             for i in range(len(input_a)):
@@ -168,6 +169,24 @@ class HebbianModel(object):
         target_bmu_index = np.argmax(target_activation)
         return source_bmu_index, target_bmu_index
 
+    def compute_recall_precision_fscore(self, X_a, X_v, y_a, y_v, source='v'):
+        if source == 'v':
+            X_source, X_target = X_v, X_a
+            y_source, y_target = y_v, y_a
+            source_som, target_som = self.som_v, self.som_a
+        elif source == 'a':
+            X_source, X_target = X_a, X_v
+            y_source, y_target = y_a, y_v
+            source_som, target_som = self.som_a, self.som_v
+        else:
+            raise ValueError('Wrong string for source parameter')
+        y_pred = [self.make_prediction(x, y, source_som, target_som, X_target, y_target, source) for x, y in
+                  zip(X_source, y_source)]
+        precision = precision_score(y_source, y_pred, average='macro')
+        recall = recall_score(y_source, y_pred, average='macro')
+        f_score = f1_score(y_source, y_pred, average='macro')
+        return round(precision, 4), round(recall, 4), round(f_score, 4)
+
     def evaluate(self, X_a, X_v, y_a, y_v, source='v', img_path=None, prediction_alg='regular', k=4,
                  train=True):
         if source == 'v':
@@ -206,9 +225,9 @@ class HebbianModel(object):
         for yi, yj in zip(y_pred, y_source):
             if yi == yj:
                 correct += 1
-        print('correct: {}'.format(correct))
-        print(y_source)
-        print(y_pred)
+        print('correct: {}/{}'.format(correct, len(y_source)))
+        # print(y_source)
+        # print(y_pred)
         return correct / len(y_pred)
 
     def make_prediction(self, x, y, source_som, target_som, X_target, y_target, source):

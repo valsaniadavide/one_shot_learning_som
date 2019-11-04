@@ -4,7 +4,7 @@ import random
 import pandas as pd
 import numpy as np
 from models.som.SOMTest import show_som, show_confusion
-from utils.utils import from_csv_with_filenames, from_csv_visual_10classes
+from utils.utils import from_csv_with_filenames, from_csv_visual_10classes, from_npy_visual_data
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, MaxAbsScaler, Normalizer
 from utils.constants import Constants
 from sklearn.metrics.pairwise import euclidean_distances
@@ -93,7 +93,7 @@ def get_examples_of_class(xs, ys, classes, class_to_extract):
     return ext_xs, ext_ys, xs_others, ys_others
 
 
-def import_data(visual_data_path, audio_data_path):
+def import_data(visual_data_path, audio_data_path, segmented=False):
     """
     Function that loads data from paths
     :param visual_data_path: visual data paths
@@ -101,12 +101,15 @@ def import_data(visual_data_path, audio_data_path):
     :return: visual and audio data loaded from path
     """
     a_xs, a_ys, filenames_audio = from_csv_with_filenames(audio_data_path)
-    v_xs, v_ys, filenames_visual = from_csv_visual_10classes(visual_data_path)
+    filenames_visual = []
+    if segmented:
+        v_xs, v_ys, _ = from_npy_visual_data(os.path.join(Constants.DATA2_FOLDER, visual_data_path))
+        v_ys = [int(y) - 1000 for y in v_ys]
+    else:
+        v_xs, v_ys, filenames_visual = from_csv_visual_10classes(visual_data_path)
     a_ys = [int(y) - 1000 for y in a_ys]
-    v_ys = [int(y) - 1000 for y in v_ys]
-    # scale data to 0-1 range
-    # a_xs = StandardScaler().fit_transform(a_xs)
-    # v_xs = StandardScaler().fit_transform(v_xs)
+    v_xs = StandardScaler().fit_transform(v_xs)
+    a_xs = StandardScaler().fit_transform(a_xs)
     return v_xs, v_ys, a_xs, a_ys, filenames_visual, filenames_audio
 
 
@@ -117,15 +120,15 @@ def print_charts(som, xs, ys, label_classes, suffix, title, subpath='test_data')
 
 
 def clean_folders(path):
-    for the_file in os.listdir(path):
-        file_path = os.path.join(path, the_file)
-        try:
+    try:
+        for the_file in os.listdir(path):
+            file_path = os.path.join(path, the_file)
             if os.path.isfile(file_path):
                 os.unlink(file_path)
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
-        except Exception as e:
-            print(e)
+    except Exception as e:
+        pass
 
 
 def get_min_max_mean_input_feature(xs):
@@ -171,3 +174,25 @@ def inputs_compactness(xs, ys):
         intra_classes_distances.append(compute_inputs_distances(ext_xs))
         inter_classes_distances.append(compute_inputs_distances(others_xs))
     return np.divide(intra_classes_distances, inter_classes_distances)
+
+
+def write_md_file(file_name, mean_accuracy, mean_accuracy_a, mean_variance, mean_variance_a, scaler, dimensions, alpha,
+                  sigma, n_iters, splits_v, splits_a, test_name, precisions, recall, f1_scores):
+    f = open(file_name, "a+")
+    f.write('\n## {}\n'.format(test_name))
+    f.write(
+        '\t - Scale type = {} \n \t - Dimension = {}\n \t - Alpha = {}\n \t - Sigma = {}\n \t - Iterations = {}\n \t - KFold visual = {}\n \t - KFold audio = {}\n'.format(
+            scaler, dimensions, alpha, sigma, n_iters, splits_v, splits_a))
+    f.write("| 					 | Source Visual | Source Audio |\n")
+    f.write("|-------------------| ------------- | ------------ |\n")
+    f.write("| __Mean Accuracy__ |  {} 			 | {}		    |\n".format(round(mean_accuracy, 2),
+                                                                                round(mean_accuracy_a, 2)))
+    f.write("| __Mean Variance__ |  {} 		 	 | {}    	    |\n".format(round(mean_variance, 4),
+                                                                                 round(mean_variance_a, 4)))
+    f.write("| __Mean Precision__ |  {} 		 	 | {}    	    |\n".format(round(precisions[0], 4),
+                                                                                  round(precisions[1], 4)))
+    f.write(
+        "| __Mean Recall__ |  {} 		 	 | {}    	    |\n".format(round(recall[0], 4), round(recall[1], 4)))
+    f.write("| __Mean F1 Score__ |  {} 		 	 | {}    	    |\n".format(round(f1_scores[0], 4),
+                                                                                 round(f1_scores[1], 4)))
+    f.close()
