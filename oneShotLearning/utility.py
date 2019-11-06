@@ -90,7 +90,7 @@ def get_examples_of_class(xs, ys, classes, class_to_extract):
         for index_element in class_elements:
             xs_others.append(xs[index_element])
             ys_others.append(ys[index_element])
-    return ext_xs, ext_ys, xs_others, ys_others
+    return ext_xs, ext_ys, np.array(xs_others), np.array(ys_others)
 
 
 def import_data(visual_data_path, audio_data_path, segmented=False):
@@ -102,14 +102,17 @@ def import_data(visual_data_path, audio_data_path, segmented=False):
     """
     a_xs, a_ys, filenames_audio = from_csv_with_filenames(audio_data_path)
     filenames_visual = []
+    v_xs, v_ys = [], []
     if segmented:
-        v_xs, v_ys, _ = from_npy_visual_data(os.path.join(Constants.DATA2_FOLDER, visual_data_path))
-        v_ys = [int(y) - 1000 for y in v_ys]
+        v_xs, v_ys, _ = from_npy_visual_data(visual_data_path)
     else:
         v_xs, v_ys, filenames_visual = from_csv_visual_10classes(visual_data_path)
+        v_ys = [int(y) - 1000 for y in v_ys]
     a_ys = [int(y) - 1000 for y in a_ys]
     v_xs = StandardScaler().fit_transform(v_xs)
     a_xs = StandardScaler().fit_transform(a_xs)
+    v_ys = np.array(v_ys)
+    a_ys = np.array(a_ys)
     return v_xs, v_ys, a_xs, a_ys, filenames_visual, filenames_audio
 
 
@@ -174,6 +177,20 @@ def inputs_compactness(xs, ys):
         intra_classes_distances.append(compute_inputs_distances(ext_xs))
         inter_classes_distances.append(compute_inputs_distances(others_xs))
     return np.divide(intra_classes_distances, inter_classes_distances)
+
+
+def train_som_and_get_weight(som_v=None, som_a=None, v_xs=None, a_xs=None):
+    weights_v, weights_a = [], []
+    if som_v is not None and v_xs is not None:
+        print('--> Training SOM (Visual)')
+        som_v.train(v_xs, pca_initialization_weights=True, verbose=False)
+        weights_v = som_v.get_weights()
+    if som_a is not None and a_xs is not None:
+        print('--> Training SOM (Audio)')
+        som_a.train(a_xs, pca_initialization_weights=True, verbose=False)
+        weights_a = som_a.get_weights()
+    print('<<< Done')
+    return weights_v, weights_a, som_v, som_a
 
 
 def write_md_file(file_name, mean_accuracy, mean_accuracy_a, mean_variance, mean_variance_a, scaler, dimensions, alpha,

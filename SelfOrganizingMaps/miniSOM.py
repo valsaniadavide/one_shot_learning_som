@@ -161,6 +161,9 @@ class MiniSom(object):
         """Returns the weights of the neural network."""
         return self._weights
 
+    def set_weights(self, weights):
+        self._weights = weights
+
     def _activate(self, x):
         """Updates matrix activation_map, in this matrix
            the element i,j is the response of the neuron i,j to x."""

@@ -52,17 +52,18 @@ class SelfOrganizingMap(object):
         self._learning_rate = learning_rate
         self._sigma = sigma
         self._neighborhood_function = neighborhood_function
-        # matplotlib.rcParams.update({'font.size': 16})
 
-    def train(self, xs, verbose=True, pca_initialization_weights=True):
+    def train(self, xs, verbose=True, pca_initialization_weights=True, weights=None):
         """
         Function that train the SOM
 
         :param xs: training set
         :param verbose: if true print the status of the training at each step
         """
-        if pca_initialization_weights:
+        if pca_initialization_weights and weights is None:
             self._miniSOM.pca_weights_init(xs)
+        if weights is not None:
+            self._miniSOM.set_weights(weights)
         self._miniSOM.train_random(xs, self._n_iterations, verbose=verbose)
         weights = self._miniSOM.get_weights().transpose(2, 0, 1).reshape(np.shape(xs)[1], -1).transpose()
         self._set_weights(weights)
@@ -70,6 +71,9 @@ class SelfOrganizingMap(object):
 
     def _set_weights(self, weights):
         self._weightages = weights
+
+    def get_weights(self):
+        return self._miniSOM.get_weights()
 
     def plot_som(self, xs, ys, type_dataset='train'):
         """

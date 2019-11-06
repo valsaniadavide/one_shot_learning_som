@@ -29,6 +29,8 @@ class Constants():
     visual_data_path = os.path.join(DATA_FOLDER,
                                     '10classes',
                                     'VisualInputTrainingSet.csv')
+    visual_data_path_segmented = os.path.join(DATA2_FOLDER, 'visual_10classes_train_as.npy')
+
     classes = list(range(0, 10))
 
     columns_stat = ['n', 'm', 'alpha', 'sigma', 'accuracy_train', 'accuracy_test', 'v_mean_compactness',
