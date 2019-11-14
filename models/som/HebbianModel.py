@@ -4,14 +4,19 @@ import os
 import sys
 import matplotlib
 
+from oneShotLearning.utility import get_examples_of_class
+
 matplotlib.use('Agg')
 matplotlib.rcParams.update({'font.size': 8})
 import matplotlib.pyplot as plt
+import seaborn as sb
 from RepresentationExperiments.distance_experiments import get_prototypes
 from sklearn.preprocessing import MinMaxScaler
 from utils.constants import Constants
 from utils.utils import softmax, get_plot_filename
+import matplotlib.patches as m_patches
 from sklearn.metrics import f1_score, recall_score, precision_score
+import collections
 
 
 class HebbianModel(object):
@@ -186,6 +191,90 @@ class HebbianModel(object):
         recall = recall_score(y_source, y_pred, average='macro')
         f_score = f1_score(y_source, y_pred, average='macro')
         return round(precision, 4), round(recall, 4), round(f_score, 4)
+
+    def evalute_class(self, X_a, X_v, y_a, y_v, source='v', class_to_evaluate=0):
+        if source == 'v':
+            X_source, X_target = X_v, X_a
+            y_source, y_target = y_v, y_a
+            source_som, target_som = self.som_v, self.som_a
+        elif source == 'a':
+            X_source, X_target = X_a, X_v
+            y_source, y_target = y_a, y_v
+            source_som, target_som = self.som_a, self.som_v
+        else:
+            raise ValueError('Wrong string for source parameter')
+        y_pred = [self.make_prediction(x, y, source_som, target_som, X_target, y_target, source) for x, y in
+                  zip(X_source, y_source)]
+
+        correct = [True for pred, real in zip(y_pred, y_source) if pred == real and real == class_to_evaluate]
+        elements_of_class = list(filter(lambda x: x == class_to_evaluate, y_source))
+        # print(y_pred)
+        # print(y_source)
+        # print(correct)
+        return len(correct) / len(elements_of_class)
+
+    def plot_class_som_activations(self, X_a, X_v, y_a, y_v, source='v', som_type='audio', class_to_extract=9,
+                                   type_dataset='test', title_extended='visual to audio'):
+        if source == 'v':
+            X_source, X_target = X_v, X_a
+            y_source, y_target = y_v, y_a
+            source_som, target_som = self.som_v, self.som_a
+        elif source == 'a':
+            X_source, X_target = X_a, X_v
+            y_source, y_target = y_a, y_v
+            source_som, target_som = self.som_a, self.som_v
+        class_ext_source_xs, class_ext_source_ys, _, _ = get_examples_of_class(X_source, y_source,
+                                                                               Constants.classes, class_to_extract)
+
+        som_dimension = target_som.get_dimensions()
+        positions = np.array(target_som.neuron_locations())
+        bmus = list(map(lambda x: positions[self.get_bmus_propagate(x, source_som=source)[1]], class_ext_source_xs))
+        print(bmus)
+        plt.figure(figsize=(12, 8))
+        plt.title('Input\'s neuron hebbian activations from {} for class \'{}\''.format(title_extended,
+                                                                                        Constants.label_classes[
+                                                                                            class_to_extract]),
+                  fontsize=20)
+        plt.xlim([-1, som_dimension[1]])
+        plt.ylim([-1, som_dimension[0]])
+        plt.gca().set_xticks(np.arange(-1, som_dimension[1], 1))
+        plt.gca().set_yticks(np.arange(-1, som_dimension[0], 1))
+        plt.gca().set_xticklabels([])
+        plt.gca().set_yticklabels([])
+        plt.gca().tick_params(axis=u'both', which=u'both', length=0)
+        plt.gca().grid(alpha=0.2, linestyle=':', color='black')
+
+        classes = Constants.label_classes
+        colors = sb.color_palette('bright', n_colors=len(classes))
+        labels_map = target_som.labels_map(X_target, y_target)
+
+        for bmu, value in labels_map.items():
+            for class_label, count in value.items():
+                size = 60 / 2 + np.log(1 + count ** 2) * 60
+                plt.scatter(bmu[1] + .5, bmu[0] + .5, s=size, color=colors[class_label], alpha=0.5,
+                            edgecolors=colors[class_label])
+
+        plt.axis([0, target_som.get_weights().shape[1], 0, target_som.get_weights().shape[0]])
+        img_path = os.path.join(Constants.PLOT_FOLDER, 'temp',
+                                'som_{}_activation_from_{}_{}.png'.format(som_type, source, type_dataset))
+        patch_list = []
+        for i in range(len(classes)):
+            patch = m_patches.Patch(color=colors[i], label=classes[i])
+            patch_list.append(patch)
+
+        plt.legend(handles=patch_list, loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 16})
+        plt.tight_layout()
+        # x, y = zip(*bmus)
+        counter = collections.Counter([tuple(i) for i in np.array(bmus).tolist()])
+        # counter = collections.Counter(np.array(bmus).tolist())
+        print(counter)
+        for bmu, count in counter.items():
+            size = 60 / 2 + np.log(1 + count ** 2) * 60
+            plt.scatter(bmu[1] + .5, bmu[0] + .5, marker='X', edgecolors='k', facecolors='none',
+                        s=size)
+        plt.savefig(img_path)
+        plt.show()
+        plt.close()
 
     def evaluate(self, X_a, X_v, y_a, y_v, source='v', img_path=None, prediction_alg='regular', k=4,
                  train=True):

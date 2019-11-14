@@ -53,6 +53,14 @@ class SelfOrganizingMap(object):
         self._sigma = sigma
         self._neighborhood_function = neighborhood_function
 
+    def set_params(self, learning_rate=None, sigma=None, n_iterations=None):
+        if learning_rate is not None:
+            self._learning_rate = learning_rate
+        if sigma is not None:
+            self._sigma = sigma
+        if n_iterations is not None:
+            self._n_iterations = n_iterations
+
     def train(self, xs, verbose=True, pca_initialization_weights=True, weights=None):
         """
         Function that train the SOM
@@ -75,6 +83,12 @@ class SelfOrganizingMap(object):
     def get_weights(self):
         return self._miniSOM.get_weights()
 
+    def get_dimensions(self):
+        return self._n, self._m
+
+    def labels_map(self, xs, ys):
+        return self._miniSOM.labels_map(xs, ys)
+
     def plot_som(self, xs, ys, type_dataset='train'):
         """
         Function that plot the SOM
@@ -92,6 +106,7 @@ class SelfOrganizingMap(object):
         plt.gca().set_xticklabels([])
         plt.gca().set_yticklabels([])
         plt.gca().tick_params(axis=u'both', which=u'both', length=0)
+        plt.gca().grid(alpha=0.2, linestyle=':', color='black')
 
         classes = Constants.label_classes
         colors = sb.color_palette('bright', n_colors=len(classes))
@@ -116,7 +131,7 @@ class SelfOrganizingMap(object):
         plt.show()
         plt.close()
 
-    def plot_u_matrix(self):
+    def plot_u_matrix(self, name='som'):
         """
         Function that plot the Unified Distance Matrix
         """
@@ -129,7 +144,7 @@ class SelfOrganizingMap(object):
         plt.gca().set_xticklabels([])
         plt.gca().set_yticklabels([])
         plt.gca().tick_params(axis=u'both', which=u'both', length=0)
-        img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'u-matrix.png')
+        img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'u-matrix_{}.png'.format(name))
         plt.imshow(umatrix, origin='higher', interpolation='spline36')
         plt.title('Unified Distance Matrix', fontsize=20)
         plt.colorbar()
@@ -209,7 +224,7 @@ class SelfOrganizingMap(object):
         plt.subplot(the_grid[self._n, :])
         plt.axis('off')
         plt.legend(patches, Constants.label_classes, loc='upper center', bbox_to_anchor=(0.5, 0), ncol=5, fontsize=14)
-        img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'som_mapping_pies.png')
+        img_path = os.path.join(Constants.PLOT_FOLDER, 'temp', 'som_mapping_pies_{}.png'.format(type_dataset))
         plt.savefig(img_path)
         plt.show()
 

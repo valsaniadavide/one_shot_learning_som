@@ -46,7 +46,7 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
     class_indexes = get_class_input_indexes(ys, classes)
     for i in range(0, n_class_examples_train):
         for class_elements in class_indexes:
-            random.seed(20)
+            # random.seed(20)
             index_random_element = random.choice(class_elements)
             class_elements.remove(index_random_element)
             new_xs_train.append(xs[index_random_element])
@@ -183,11 +183,11 @@ def train_som_and_get_weight(som_v=None, som_a=None, v_xs=None, a_xs=None):
     weights_v, weights_a = [], []
     if som_v is not None and v_xs is not None:
         print('--> Training SOM (Visual)')
-        som_v.train(v_xs, pca_initialization_weights=True, verbose=False)
+        som_v.train(v_xs, pca_initialization_weights=True, verbose=True)
         weights_v = som_v.get_weights()
     if som_a is not None and a_xs is not None:
         print('--> Training SOM (Audio)')
-        som_a.train(a_xs, pca_initialization_weights=True, verbose=False)
+        som_a.train(a_xs, pca_initialization_weights=True, verbose=True)
         weights_a = som_a.get_weights()
     print('<<< Done')
     return weights_v, weights_a, som_v, som_a
