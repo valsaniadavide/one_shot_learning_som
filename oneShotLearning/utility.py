@@ -27,7 +27,7 @@ def get_class_input_indexes(class_list, classes):
     return class_indexes
 
 
-def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples_test):
+def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples_test, class_to_exclude=-1):
     """
     Function that return 'n_class_examples_train' examples per class used for training and 'n_class_examples_test'
     examples per class used for test
@@ -47,10 +47,11 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
     for i in range(0, n_class_examples_train):
         for class_elements in class_indexes:
             # random.seed(20)
-            index_random_element = random.choice(class_elements)
-            class_elements.remove(index_random_element)
-            new_xs_train.append(xs[index_random_element])
-            new_ys_train.append(ys[index_random_element])
+            if len(class_elements) > 0:
+                index_random_element = random.choice(class_elements)
+                class_elements.remove(index_random_element)
+                new_xs_train.append(xs[index_random_element])
+                new_ys_train.append(ys[index_random_element])
     if n_class_examples_test != -1:
         for i in range(0, n_class_examples_test):
             for class_elements in class_indexes:
@@ -62,6 +63,7 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
     else:
         for class_elements in class_indexes:
             for index in range(0, len(class_elements)):
+                # if index != class_to_exclude:
                 new_xs_test.append(xs[class_elements[index]])
                 new_ys_test.append(ys[class_elements[index]])
 
@@ -191,6 +193,11 @@ def train_som_and_get_weight(som_v=None, som_a=None, v_xs=None, a_xs=None):
         weights_a = som_a.get_weights()
     print('<<< Done')
     return weights_v, weights_a, som_v, som_a
+
+
+def safe_create_folder(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
 
 
 def write_md_file(file_name, mean_accuracy, mean_accuracy_a, mean_variance, mean_variance_a, scaler, dimensions, alpha,

@@ -23,7 +23,7 @@ import seaborn as sb
 from utils.constants import Constants
 import matplotlib
 
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 
 fInput = 'input10classes/VisualInputTrainingSet.csv'
 N = 1000

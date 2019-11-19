@@ -213,8 +213,8 @@ class HebbianModel(object):
         # print(correct)
         return len(correct) / len(elements_of_class)
 
-    def plot_class_som_activations(self, X_a, X_v, y_a, y_v, source='v', som_type='audio', class_to_extract=9,
-                                   type_dataset='test', title_extended='visual to audio'):
+    def plot_class_som_activations(self, X_a, X_v, y_a, y_v, img_path, source='v', som_type='audio', class_to_extract=9,
+                                   type_dataset='test', title_extended='visual to audio', class_excluded=-1):
         if source == 'v':
             X_source, X_target = X_v, X_a
             y_source, y_target = y_v, y_a
@@ -229,7 +229,7 @@ class HebbianModel(object):
         som_dimension = target_som.get_dimensions()
         positions = np.array(target_som.neuron_locations())
         bmus = list(map(lambda x: positions[self.get_bmus_propagate(x, source_som=source)[1]], class_ext_source_xs))
-        print(bmus)
+        # print(bmus)
         plt.figure(figsize=(12, 8))
         plt.title('Input\'s neuron hebbian activations from {} for class \'{}\''.format(title_extended,
                                                                                         Constants.label_classes[
@@ -255,19 +255,22 @@ class HebbianModel(object):
                             edgecolors=colors[class_label])
 
         plt.axis([0, target_som.get_weights().shape[1], 0, target_som.get_weights().shape[0]])
-        img_path = os.path.join(Constants.PLOT_FOLDER, 'temp',
-                                'som_{}_activation_from_{}_{}.png'.format(som_type, source, type_dataset))
+        img_path = os.path.join(img_path,
+                                'som_{}_activation_from_{}_{}_class_{}.png'.format(som_type, source, type_dataset,
+                                                                                   Constants.label_classes[
+                                                                                       class_to_extract]))
         patch_list = []
         for i in range(len(classes)):
-            patch = m_patches.Patch(color=colors[i], label=classes[i])
-            patch_list.append(patch)
+            if i != class_excluded:
+                patch = m_patches.Patch(color=colors[i], label=classes[i])
+                patch_list.append(patch)
 
         plt.legend(handles=patch_list, loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 16})
         plt.tight_layout()
         # x, y = zip(*bmus)
         counter = collections.Counter([tuple(i) for i in np.array(bmus).tolist()])
         # counter = collections.Counter(np.array(bmus).tolist())
-        print(counter)
+        # print(counter)
         for bmu, count in counter.items():
             size = 60 / 2 + np.log(1 + count ** 2) * 60
             plt.scatter(bmu[1] + .5, bmu[0] + .5, marker='X', edgecolors='k', facecolors='none',

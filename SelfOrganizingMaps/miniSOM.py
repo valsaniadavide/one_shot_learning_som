@@ -12,6 +12,7 @@ from time import time
 from datetime import timedelta
 import pickle
 import os
+import warnings
 
 # for unit tests
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
@@ -21,6 +22,7 @@ import unittest
 """
     Minimalistic implementation of the Self Organizing Maps (SOM).
 """
+warnings.filterwarnings('ignore')
 
 
 def _incremental_index_verbose(m):
