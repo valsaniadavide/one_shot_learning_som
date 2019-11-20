@@ -43,10 +43,11 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
     """
     new_xs_train, new_ys_train = [], []
     new_xs_test, new_ys_test = [], []
+    seed = 4
     class_indexes = get_class_input_indexes(ys, classes)
     for i in range(0, n_class_examples_train):
         for class_elements in class_indexes:
-            # random.seed(20)
+            random.seed(seed)
             if len(class_elements) > 0:
                 index_random_element = random.choice(class_elements)
                 class_elements.remove(index_random_element)
@@ -55,7 +56,7 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
     if n_class_examples_test != -1:
         for i in range(0, n_class_examples_test):
             for class_elements in class_indexes:
-                # random.seed(10)
+                random.seed(seed)
                 index_random_element = random.choice(class_elements)
                 class_elements.remove(index_random_element)
                 new_xs_test.append(xs[index_random_element])
