@@ -89,7 +89,8 @@ class SelfOrganizingMap(object):
     def labels_map(self, xs, ys):
         return self._miniSOM.labels_map(xs, ys)
 
-    def plot_som(self, xs, ys, img_path, type_dataset='train', label_classes=Constants.label_classes, class_to_exclude=-1):
+    def plot_som(self, xs, ys, img_path, type_dataset='train', label_classes=Constants.label_classes,
+                 class_to_exclude=-1):
         """
         Function that plot the SOM
 
@@ -166,8 +167,8 @@ class SelfOrganizingMap(object):
         print('Accuracy SOM {} = {}'.format(type, accuracy_result))
         return accuracy_result
 
-    def get_activations(self, xs):
-        return self._som.get_activations(xs)
+    def get_activations(self, xs, threshold=.6):
+        return self._som.get_activations(xs, threshold=threshold)
 
     def plot_activation_frequencies(self, xs):
         """

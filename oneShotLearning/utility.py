@@ -43,7 +43,7 @@ def get_random_classes(xs, ys, classes, n_class_examples_train, n_class_examples
     """
     new_xs_train, new_ys_train = [], []
     new_xs_test, new_ys_test = [], []
-    seed = 4
+    seed = 10
     class_indexes = get_class_input_indexes(ys, classes)
     for i in range(0, n_class_examples_train):
         for class_elements in class_indexes:

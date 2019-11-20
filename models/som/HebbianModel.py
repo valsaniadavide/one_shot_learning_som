@@ -87,8 +87,8 @@ class HebbianModel(object):
             # present images to model
             for i in range(len(input_a)):
                 # get activations from som
-                activation_a, _ = self.som_a.get_activations(input_a[i])
-                activation_v, _ = self.som_v.get_activations(input_v[i])
+                activation_a, _ = self.som_a.get_activations(input_a[i], threshold=self.threshold)
+                activation_v, _ = self.som_v.get_activations(input_v[i], threshold=self.threshold)
 
                 # run training op
                 _, d = self._sess.run([self.training, self.delta],
