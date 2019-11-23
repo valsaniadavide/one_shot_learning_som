@@ -30,13 +30,15 @@ class Constants():
                                     '10classes',
                                     'VisualInputTrainingSet.csv')
     visual_data_path_segmented = os.path.join(DATA2_FOLDER, 'visual_10classes_train_as.npy')
-
+    statistics_path = os.path.join(ROOT_FOLDER, 'oneShotLearning', 'statistics')
     classes = list(range(0, 10))
 
     columns_stat = ['n', 'm', 'alpha', 'sigma', 'accuracy_train', 'accuracy_test', 'v_mean_compactness',
                     'v_mean_variance', 'a_mean_compactness', 'a_mean_variance', 'v_confus', 'a_confus']
 
     label_classes = ['table', 'mug', 'tree', 'dog', 'house', 'book', 'guitar', 'fish', 'cat', 'bird']
+    # label_classes = ['banana', 'bench', 'dog', 'elephant', 'zebra', 'bottle', 'wine glass', 'dining table', 'clock',
+    #                  'teddy bear']
 
     ID_STRING = "graves_" + str(NUM_LAYERS) + "l_" + str(NUM_HIDDEN) + \
                 "h_" + str(BATCH_SIZE) + "b_" + OPTIMIZER_DESCR

@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     v_dim, a_dim = np.shape(v_xs_all)[1], np.shape(a_xs_all)[1]
 
-    alpha, sigma = 0.35, 3
+    alpha, sigma = 0.3, 3
     n_iters = 5500
     n, m = 20, 30
     scaler = 'Standard Scaler'
@@ -22,6 +22,7 @@ if __name__ == '__main__':
     iterations_one_shot = 300
     sigma_one_shot = 0.8
     alpha_one_shot = 0.1
+    hebbian_threshold = .85
     clean_statistics_folders()
 
     # Split dataset into training set and test set (balanced examples per class)
@@ -39,6 +40,11 @@ if __name__ == '__main__':
                                                           Constants.classes, 10, -1)
 
     for i in Constants.classes:
+        label_classes = Constants.label_classes.copy()
+        label_classes.pop(i)
+        classes = Constants.classes.copy()
+        classes.pop(i)
+
         # Extract the class i-th from the train and the test sets
         class_ext_v_xs, class_ext_v_ys, v_xs, v_ys = get_examples_of_class(v_xs_all_train, v_ys_all_train,
                                                                            Constants.classes, i)
@@ -67,12 +73,11 @@ if __name__ == '__main__':
 
         statistics = ['Data', 'Value']
         statistics.extend(['Size', '{}x{}'.format(n, m)])
+        statistics.extend(['Hebbian Threshold', '{}'.format(hebbian_threshold)])
+        statistics.extend(['+++', '+++'])
         statistics.extend(['Learning Rate SOMs n-1 classes', '{}'.format(alpha)])
         statistics.extend(['Sigma SOMs n-1 classes', '{}'.format(sigma)])
         statistics.extend(['Iterations SOMs n-1 classes', '{}'.format(n_iters)])
-
-        label_classes = Constants.label_classes.copy()
-        label_classes.pop(i)
 
         print('\n\n ++++++++++++++++++++++++++++ {}) TEST ONE SHOT ON CLASS = \'{}\' ++++++++++++++++++++++++++++ \n\n'
               .format(i + 1, Constants.label_classes[i]))
@@ -83,7 +88,8 @@ if __name__ == '__main__':
         recalls, recalls_a = [], []
         f1_scores, f1_scores_a = [], []
 
-        root_folder = 'one_shot_class_{}'.format(Constants.label_classes[i])
+        # Creating folders to save test results
+        root_folder = '{}_one_shot_class_{}'.format(i + 1, Constants.label_classes[i])
         path = os.path.join(Constants.PLOT_FOLDER, 'temp', root_folder)
         test_path = os.path.join(path, 'test_set')
         training_path = os.path.join(path, 'training_set')
@@ -102,7 +108,7 @@ if __name__ == '__main__':
 
         # Training Hebbian Model for SOMs with n-1 classes
         hebbian_model = HebbianModel(som_a, som_v, a_dim, v_dim, n_presentations=10,
-                                     n_classes=len(Constants.classes) - 1, threshold=.6)
+                                     n_classes=len(Constants.classes) - 1, threshold=hebbian_threshold)
         hebbian_model.train(h_a_xs_train_n_1, h_v_xs_train_n_1)
 
         # Evaluating Hebbian Model for SOMs with n-1 classes
@@ -133,8 +139,6 @@ if __name__ == '__main__':
         print('\n--> Accuracy Test Set (Source \'Visual\') n-1 classes: {}'.format(accuracy_test_v))
         print('--> Accuracy Test Set (Source \'Audio\') n-1 classes: {}\n'.format(accuracy_test_a))
 
-        classes = Constants.classes.copy()
-        classes.pop(i)
         som_v.plot_som(v_xs_n_1_classes_test, v_ys_n_1_classes_test,
                        os.path.join(test_path, 'plots_classes_pre_one_shot'),
                        type_dataset='video_trained_n-1_classes',
@@ -158,17 +162,17 @@ if __name__ == '__main__':
         som_one_shot_a = SelfOrganizingMap(n, m, a_dim, n_iterations=iterations_one_shot, sigma=sigma_one_shot,
                                            learning_rate=alpha_one_shot)
 
-        print('--> One Shot training')
+        print('--> One Shot training...')
         # Train both SOMs with one shot dataset assigning precomputed weights
         som_one_shot_v.train(class_ext_v_xs_train, weights=weights_v)
         som_one_shot_a.train(class_ext_a_xs_train, weights=weights_a)
 
-        statistics.extend(['***************', '***************'])
+        statistics.extend(['***', '***'])
         statistics.extend(['Learning Rate SOMs One-shot', '{}'.format(alpha_one_shot)])
         statistics.extend(['Sigma SOMs n-1 One-shot', '{}'.format(sigma_one_shot)])
         statistics.extend(['Iterations SOMs One-shot', '{}'.format(iterations_one_shot)])
 
-        print('Plotting som')
+        print('--> Plotting som...')
         som_one_shot_v.plot_som(v_xs_all_test, v_ys_all_test, os.path.join(test_path, 'plots_one_shots_results'),
                                 type_dataset='video_trained_one_shot')
         som_one_shot_a.plot_som(a_xs_all_test, a_ys_all_test, os.path.join(test_path, 'plots_one_shots_results'),
@@ -185,13 +189,46 @@ if __name__ == '__main__':
         som_one_shot_a.plot_u_matrix(os.path.join(training_path, 'plots_one_shots_results'),
                                      name='audio_trained_one_shot')
 
-        print('Training Hebbian Model One-Shot SOMs...')
+        print('--> Training Hebbian Model One-Shot SOMs...')
+
         # Training Hebbian Model for one-shot SOMs
-        hebbian_model = HebbianModel(som_one_shot_a, som_one_shot_v, a_dim, v_dim, n_presentations=10, threshold=.6)
+        hebbian_model = HebbianModel(som_one_shot_a, som_one_shot_v, a_dim, v_dim, n_presentations=10,
+                                     threshold=hebbian_threshold)
         hebbian_model.train(h_a_xs_train, h_v_xs_train)
 
+        # print('Compute precision, recall, f_score')
+        # precision_v, recall_v, f1_score_v = hebbian_model.compute_recall_precision_fscore(
+        #     a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test, source='v')
+        # precision_a, recall_a, f1_score_a = hebbian_model.compute_recall_precision_fscore(
+        #     a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test, source='a')
+        print('--> Compute accuracy...')
+        accuracy_test_v = hebbian_model.evaluate(a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test,
+                                                 source='v',
+                                                 prediction_alg='regular')
+        accuracy_test_a = hebbian_model.evaluate(a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test,
+                                                 source='a',
+                                                 prediction_alg='regular')
+        accuracy_train_v = hebbian_model.evaluate(a_xs_all_train, v_xs_all_train, a_ys_all_train, v_ys_all_train,
+                                                  source='v', prediction_alg='regular')
+        accuracy_train_a = hebbian_model.evaluate(a_xs_all_train, v_xs_all_train, a_ys_all_train, v_ys_all_train,
+                                                  source='a', prediction_alg='regular')
+        # print('Compute accuracy class')
+        # accuracy_class = hebbian_model.evalute_class(a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test,
+        #                                              source='v', class_to_evaluate=i)
+        # accuracy_class_a = hebbian_model.evalute_class(a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test,
+        #                                                source='a', class_to_evaluate=i)
+
+        # print('Accuracy Class \'{}\' (Visual) = {}'.format(Constants.label_classes[i], accuracy_class))
+        # print('Accuracy Class \'{}\' (Audio)= {}'.format(Constants.label_classes[i], accuracy_class_a))
+
+        print('--> Accuracy Test Set (Source \'Visual\'): {}'.format(accuracy_test_v))
+        # print('\tPrecision={}, Recall={}, F1_score={}'.format(precision_v, recall_v, f1_score_v))
+        print('--> Accuracy Test Set (Source \'Audio\'): {}'.format(accuracy_test_a))
+        # print('\tPrecision={}, Recall={}, F1_score={}'.format(precision_a, recall_a, f1_score_a))
+
+        # Plot for each class both SOM activations
         for index_class in Constants.classes:
-            print('Evaluating Activation for class \'{}\''.format(Constants.label_classes[index_class]))
+            print('--> Evaluating Activation for class \'{}\''.format(Constants.label_classes[index_class]))
             class_path = '{}) activations class "{}"'.format(index_class, Constants.label_classes[index_class])
             path_training_actv = os.path.join(training_path, 'plots_activations_per_class', class_path)
             path_test_actv = os.path.join(test_path, 'plots_activations_per_class', class_path)
@@ -218,36 +255,6 @@ if __name__ == '__main__':
                                                      som_type='video', title_extended='audio to visual',
                                                      class_to_extract=index_class)
 
-        # print('Compute precision, recall, f_score')
-        # precision_v, recall_v, f1_score_v = hebbian_model.compute_recall_precision_fscore(
-        #     a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test, source='v')
-        # precision_a, recall_a, f1_score_a = hebbian_model.compute_recall_precision_fscore(
-        #     a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test, source='a')
-        print('Compute accuracy')
-        accuracy_test_v = hebbian_model.evaluate(a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test,
-                                                 source='v',
-                                                 prediction_alg='regular')
-        accuracy_test_a = hebbian_model.evaluate(a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test,
-                                                 source='a',
-                                                 prediction_alg='regular')
-        accuracy_train_v = hebbian_model.evaluate(a_xs_all_train, v_xs_all_train, a_ys_all_train, v_ys_all_train,
-                                                  source='v', prediction_alg='regular')
-        accuracy_train_a = hebbian_model.evaluate(a_xs_all_train, v_xs_all_train, a_ys_all_train, v_ys_all_train,
-                                                  source='a', prediction_alg='regular')
-        # print('Compute accuracy class')
-        # accuracy_class = hebbian_model.evalute_class(a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test,
-        #                                              source='v', class_to_evaluate=i)
-        # accuracy_class_a = hebbian_model.evalute_class(a_xs_all_test, v_xs_all_test, a_ys_all_test, v_ys_all_test,
-        #                                                source='a', class_to_evaluate=i)
-
-        # print('Accuracy Class \'{}\' (Visual) = {}'.format(Constants.label_classes[i], accuracy_class))
-        # print('Accuracy Class \'{}\' (Audio)= {}'.format(Constants.label_classes[i], accuracy_class_a))
-
-        print('--> Accuracy Test Set (Source \'Visual\'): {}'.format(accuracy_test_v))
-        # print('\tPrecision={}, Recall={}, F1_score={}'.format(precision_v, recall_v, f1_score_v))
-        print('--> Accuracy Test Set (Source \'Audio\'): {}'.format(accuracy_test_a))
-        # print('\tPrecision={}, Recall={}, F1_score={}'.format(precision_a, recall_a, f1_score_a))
-
         statistics.extend(
             ['Accuracy Test Set (Source \'Visual\') One-Shot', '{}'.format(round(accuracy_test_v, 2))])
         statistics.extend(['Accuracy Test Set (Source \'Audio\') One-Shot', '{}'.format(round(accuracy_test_a, 2))])
@@ -256,8 +263,10 @@ if __name__ == '__main__':
         statistics.extend(
             ['Accuracy Training Set (Source \'Audio\') One-Shot', '{}'.format(round(accuracy_train_a, 2))])
 
+        # Creating and saving markdown file of results about the class analyzed
         mdFile = MdUtils(file_name=os.path.join(path, 'results_class_{}'.format(Constants.label_classes[i])),
                          title='Statistics about one-shot on class \'{}\''.format(Constants.label_classes[i]))
         mdFile.new_line()
-        mdFile.new_table(columns=2, rows=17, text=statistics, text_align='center')
+        mdFile.new_table(columns=2, rows=19, text=statistics,
+                         text_align='center')
         mdFile.create_md_file()
