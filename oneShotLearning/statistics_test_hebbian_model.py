@@ -18,7 +18,8 @@ def autolabel(rects, ax):
                     ha='center', va='bottom')
 
 
-def plot_results_on_bar(data_results, labels_results, labels_threshold, data_type='Training'):
+def plot_results_on_bar(data_results, labels_results, labels_threshold, root_folder=Constants.statistics_path,
+                        data_type='Training'):
     width = 0.10  # the width of the bars
     (row, columns) = np.shape(data_results)
     fig, ax = plt.subplots(figsize=(15, 5))
@@ -27,7 +28,8 @@ def plot_results_on_bar(data_results, labels_results, labels_threshold, data_typ
     position = 0
     colors = sb.color_palette('bright', n_colors=row)
     for i in range(0, row):
-        rect = ax.bar(x + position, data_results[i], width, label=labels_threshold[i].replace('_', ' ').split(' ', 1)[1], color=colors[i])
+        rect = ax.bar(x + position, data_results[i], width,
+                      label=labels_threshold[i].replace('_', ' ').split(' ', 1)[1], color=colors[i])
         rects.append(rect)
         position += width
     labels_results = [string.split(' ', 3)[3] for string in labels_results]
@@ -39,8 +41,8 @@ def plot_results_on_bar(data_results, labels_results, labels_threshold, data_typ
     for rect in rects:
         autolabel(rect, ax)
     fig.tight_layout()
-    plt.savefig(os.path.join(Constants.statistics_path, 'plots_{}_accuracy_results.png'.format(data_type.lower())))
-    plt.show()
+    plt.savefig(os.path.join(root_folder, 'plots_{}_accuracy_results.png'.format(data_type.lower())))
+
 
 if __name__ == '__main__':
     threshold = range(60, 90, 5)
@@ -51,10 +53,11 @@ if __name__ == '__main__':
         result[name_object_test] = {}
         result[name_object_test]['value_threshold'] = value_threshold
         labels_result = []
+        root_folder = os.path.join(Constants.statistics_path, '10_shot')
         for class_index in Constants.classes:
             class_label = Constants.label_classes[class_index]
             with open(
-                    os.path.join(Constants.statistics_path, name_folder,
+                    os.path.join(root_folder, name_folder,
                                  '{}_one_shot_class_{}'.format(class_index + 1, class_label),
                                  'results_class_{}.md'.format(class_label))) as f:
                 file_split = [line.split('\n') for line in f]
@@ -64,7 +67,7 @@ if __name__ == '__main__':
                         result[name_object_test][element[0]] = [float(element[1])]
                     else:
                         result[name_object_test][element[0]].append(float(element[1]))
-    with open(os.path.join(Constants.statistics_path, 'results_tests.json'), 'w') as f:
+    with open(os.path.join(root_folder, 'results_tests.json'), 'w') as f:
         json.dump(result, f, indent=True)
 
     train_results, test_results = [], []
@@ -85,7 +88,5 @@ if __name__ == '__main__':
 
     train_results, test_results = np.array(train_results), np.array(test_results)
     labels_train, labels_test = list(dict.fromkeys(labels_train)), list(dict.fromkeys(labels_test))
-    plot_results_on_bar(train_results, labels_train, labels_threshold, data_type='Training')
-    plot_results_on_bar(test_results, labels_test, labels_threshold, data_type='Test')
-
-
+    plot_results_on_bar(train_results, labels_train, labels_threshold, root_folder=root_folder, data_type='Training')
+    plot_results_on_bar(test_results, labels_test, labels_threshold, root_folder=root_folder, data_type='Test')
