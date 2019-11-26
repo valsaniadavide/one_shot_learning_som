@@ -40,12 +40,17 @@ if __name__ == '__main__':
     h_v_xs_train, h_v_ys_train, _, _ = get_random_classes(v_xs_all_train, v_ys_all_train,
                                                           Constants.classes, 10, -1)
     for hebbian_threshold in range(60, 90, 5):
+
+        test_root_folder = os.path.join(Constants.PLOT_FOLDER, 'temp',
+                                        'one_shot_results_threshold_{}'.format(int(hebbian_threshold)))
+        safe_create_folder(test_root_folder)
+        hebbian_threshold = hebbian_threshold / 100
+
         for i in Constants.classes:
             label_classes = Constants.label_classes.copy()
             label_classes.pop(i)
             classes = Constants.classes.copy()
             classes.pop(i)
-            hebbian_threshold = hebbian_threshold / 100
             # Extract the class i-th from the train and the test sets
             class_ext_v_xs, class_ext_v_ys, v_xs, v_ys = get_examples_of_class(v_xs_all_train, v_ys_all_train,
                                                                                Constants.classes, i)
@@ -92,9 +97,7 @@ if __name__ == '__main__':
             f1_scores, f1_scores_a = [], []
 
             # Creating folders to save test results
-            test_root_folder = os.path.join(Constants.PLOT_FOLDER, 'temp',
-                                            'one_shot_results_threshold_{}'.format(int(hebbian_threshold * 100)))
-            safe_create_folder(test_root_folder)
+
             root_folder = '{}_one_shot_class_{}'.format(i + 1, Constants.label_classes[i])
             path = os.path.join(test_root_folder, root_folder)
             test_path = os.path.join(path, 'test_set')
