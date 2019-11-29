@@ -53,7 +53,7 @@ if __name__ == '__main__':
         result[name_object_test] = {}
         result[name_object_test]['value_threshold'] = value_threshold
         labels_result = []
-        root_folder = os.path.join(Constants.statistics_path, '10_shot')
+        root_folder = os.path.join(Constants.statistics_path, '5_shot')
         for class_index in Constants.classes:
             class_label = Constants.label_classes[class_index]
             with open(

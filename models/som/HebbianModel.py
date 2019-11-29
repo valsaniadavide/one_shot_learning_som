@@ -1,9 +1,12 @@
+import time
+
 import tensorflow as tf
 import numpy as np
 import os
 import sys
 import matplotlib
 
+from oneShotLearning.decorator import timeit
 from oneShotLearning.utility import get_examples_of_class
 
 matplotlib.use('Agg')
@@ -192,6 +195,7 @@ class HebbianModel(object):
         f_score = f1_score(y_source, y_pred, average='macro')
         return round(precision, 4), round(recall, 4), round(f_score, 4)
 
+    @timeit
     def evalute_class(self, X_a, X_v, y_a, y_v, source='v', class_to_evaluate=0):
         if source == 'v':
             X_source, X_target = X_v, X_a
@@ -203,16 +207,28 @@ class HebbianModel(object):
             source_som, target_som = self.som_a, self.som_v
         else:
             raise ValueError('Wrong string for source parameter')
-        y_pred = [self.make_prediction(x, y, source_som, target_som, X_target, y_target, source) for x, y in
-                  zip(X_source, y_source)]
+        # start = time.process_time()
+        y_pred, correct, elements_of_class = [], 0, 0
+        for x, y in zip(X_source, y_source):
+            pred = self.make_prediction(x, y, source_som, target_som, X_target, y_target, source)
+            y_pred.append(pred)
+            if pred == y and y == class_to_evaluate:
+                correct += 1
+            if y == class_to_evaluate:
+                elements_of_class += 1
 
-        correct = [True for pred, real in zip(y_pred, y_source) if pred == real and real == class_to_evaluate]
-        elements_of_class = list(filter(lambda x: x == class_to_evaluate, y_source))
+        # y_pred = [self.make_prediction(x, y, source_som, target_som, X_target, y_target, source) for x, y in
+        #           zip(X_source, y_source)]
+        # print('Elapsed time after predictions: {} sec.'.format(time.process_time() - start))
+
+        # correct = [True for pred, real in zip(y_pred, y_source) if pred == real and real == class_to_evaluate]
+        # elements_of_class = list(y_source).count(class_to_evaluate)
         # print(y_pred)
         # print(y_source)
         # print(correct)
-        return len(correct) / len(elements_of_class)
+        return correct / elements_of_class
 
+    @timeit
     def plot_class_som_activations(self, X_a, X_v, y_a, y_v, img_path, source='v', som_type='audio', class_to_extract=9,
                                    type_dataset='test', title_extended='visual to audio', class_excluded=-1):
         if source == 'v':
@@ -279,6 +295,7 @@ class HebbianModel(object):
         plt.show()
         plt.close()
 
+    @timeit
     def evaluate(self, X_a, X_v, y_a, y_v, source='v', img_path=None, prediction_alg='regular', k=4,
                  train=True):
         if source == 'v':
@@ -300,7 +317,7 @@ class HebbianModel(object):
 
         y_pred = []
         img_n = 0
-
+        correct = 0
         for x, y in zip(X_source, y_source):
             if prediction_alg == 'regular':
                 yi_pred = self.make_prediction(x, y, source_som, target_som, X_target, y_target, source)
@@ -313,11 +330,12 @@ class HebbianModel(object):
             else:
                 raise ValueError('Unknown evaluation algorithm ' + str(prediction_alg))
             y_pred.append(yi_pred)
-        correct = 0
-        for yi, yj in zip(y_pred, y_source):
-            if yi == yj:
+            if yi_pred == y:
                 correct += 1
-        print('correct: {}/{}'.format(correct, len(y_source)))
+                # for yi, yj in zip(y_pred, y_source):
+        #     if yi == yj:
+        #         correct += 1
+        # print('correct: {}/{}'.format(correct, len(y_source)))
         # print(y_source)
         # print(y_pred)
         return correct / len(y_pred)

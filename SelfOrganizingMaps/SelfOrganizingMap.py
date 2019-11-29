@@ -17,6 +17,7 @@ import numpy as np
 import matplotlib.patches as m_patches
 import matplotlib
 
+from oneShotLearning.decorator import timeit
 from utils.constants import Constants
 
 FIG_SIZE = (12, 8)
@@ -89,6 +90,7 @@ class SelfOrganizingMap(object):
     def labels_map(self, xs, ys):
         return self._miniSOM.labels_map(xs, ys)
 
+    @timeit
     def plot_som(self, xs, ys, img_path, type_dataset='train', label_classes=Constants.label_classes,
                  class_to_exclude=-1):
         """
