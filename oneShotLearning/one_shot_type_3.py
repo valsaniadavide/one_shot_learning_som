@@ -25,7 +25,7 @@ if __name__ == '__main__':
     sigma_one_shot = 0.8
     alpha_one_shot = 0.1
     hebbian_threshold = .80
-    shots = 10
+    shots = 5
     clean_statistics_folders()
 
     # Split dataset into training set and test set (balanced examples per class)
@@ -254,7 +254,7 @@ if __name__ == '__main__':
                 safe_create_folder(path_training_actv)
                 safe_create_folder(path_test_actv)
                 if index_class == i:
-                    print('--> Computing accuracy for class {}'.format(label_classes[index_class]))
+                    print('--> Computing accuracy for class {}'.format(Constants.label_classes[index_class]))
                     accuracy_train_oneshot_v = hebbian_model_one_shot.evalute_class(a_xs_all_train, v_xs_all_train,
                                                                                     a_ys_all_train, v_ys_all_train,
                                                                                     source='v',
